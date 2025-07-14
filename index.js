@@ -1559,6 +1559,7 @@ function highlightPiece(i) {
     }
 }
 
+var recentTimeout;
 function handleTurning() {
     if (animationProgress > 0.99 && animating == ANIMATION.TURN) {
         animating = ANIMATION.NONE;
@@ -1568,22 +1569,22 @@ function handleTurning() {
         if (turnType == "gyroA") {
             turnType = "gyroB";
             animating = ANIMATION.WAIT_SUCCESSIVE_ANIM;
-            setTimeout(() => {animating = ANIMATION.TURN}, (instantGyros || scrambling) ? 5 : 100);
+            recentTimeout = setTimeout(() => {animating = ANIMATION.TURN}, (instantGyros || scrambling) ? 5 : 100);
         } else if (turnType == "gyroB") {
             turnType = "gyroC";
             animating = ANIMATION.WAIT_SUCCESSIVE_ANIM;
-            setTimeout(() => {animating = ANIMATION.TURN}, (instantGyros || scrambling) ? 5 : 100);
+            recentTimeout = setTimeout(() => {animating = ANIMATION.TURN}, (instantGyros || scrambling) ? 5 : 100);
         } else if (turnType == "gyroC") {
             if (instantGyros) { turnSpeed = speedList[turnSpeedIndex] / 15; }
         }
         if (turnType == "gyropA") {
             turnType = "gyropB";
             animating = ANIMATION.WAIT_SUCCESSIVE_ANIM;
-            setTimeout(() => {animating = ANIMATION.TURN}, (instantGyros || scrambling) ? 5 : 100);
+            recentTimeout = setTimeout(() => {animating = ANIMATION.TURN}, (instantGyros || scrambling) ? 5 : 100);
         } else if (turnType == "gyropB") {
             turnType = "gyropC";
             animating = ANIMATION.WAIT_SUCCESSIVE_ANIM;
-            setTimeout(() => {animating = ANIMATION.TURN}, (instantGyros || scrambling) ? 5 : 100);
+            recentTimeout = setTimeout(() => {animating = ANIMATION.TURN}, (instantGyros || scrambling) ? 5 : 100);
         } else if (turnType == "gyropC") {
             if (instantGyros) { turnSpeed = speedList[turnSpeedIndex] / 15; }
         }
@@ -1861,6 +1862,11 @@ function renderResetButton() {
     if (checkBoxHover(290, 30, 110, 50)) {
         ctx.fillStyle = "#80808080";
         if (mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+            clearTimeout(recentTimeout);
+            scrambling = false;
+            turnSpeed = speedList[turnSpeedIndex] / 15;
+            animationProgress = 0;
+            animating = ANIMATION.NONE;
             puzzle = create2to4(new Vector3(0, 0, 2));
             referenceAxisMesh.resetEuler();
             if (soundEffectsOn == 1) {
