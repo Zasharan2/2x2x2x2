@@ -44,9 +44,11 @@ var keyBinds = {
 };
 
 var keys = [];
+var runKey = false; // true when keybind can be properly called, but set false when keybind returns true; limits checkKeyBind so doesn't spam true when keyBind satisfied
 
 document.addEventListener("keydown", function (event) {
     keys[event.key] = true;
+    runKey = true;
     // if (["ArrowUp", "ArrowDown", "ArrowRight", "ArrowLeft", " ", "Tab"].indexOf(event.key) > -1) {
     //     event.preventDefault();
     // }
@@ -54,13 +56,18 @@ document.addEventListener("keydown", function (event) {
 
 document.addEventListener("keyup", function (event) {
     keys[event.key] = false;
+    runKey = false;
 });
 
 function checkKeyBind(keyBind) {
-    for (var i = 0; i < keyBind.length; i++) {
-        if (!keys[keyBind[i]]) return false;
+    if (runKey) {
+        for (var i = 0; i < keyBind.length; i++) {
+            if (!keys[keyBind[i]]) return false;
+        }
+        runKey = false;
+        return true;
     }
-    return true;
+    return false;
 }
 
 c.addEventListener('contextmenu', function(event) {
