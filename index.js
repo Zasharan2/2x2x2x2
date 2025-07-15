@@ -35,6 +35,10 @@ var keyBinds = {
     f2Turn: ["f"],
     d2Turn: ["d"],
     b2Turn: ["b"],
+    xTurn: ["x"],
+    xPrimeTurn: ["X"],
+    y2Turn: ["y"],
+    z2Turn: ["z"],
     gyro: ["g"],
     gyroPrime: ["G"]
 };
@@ -91,7 +95,9 @@ document.addEventListener("wheel", function(event) {
 
 var turnSound = new Audio("sounds/turn.mp3");
 var orientSound = new Audio("sounds/orient.mp3");
-var gyroSound = new Audio("sounds/gyro.mp3");
+var orient2Sound = new Audio("sounds/orient2.mp3");
+var gyroSound = new Audio("sounds/gyro2.mp3");
+var solveSound = new Audio("sounds/solve.wav");
 
 var vineboomSound = new Audio("sounds/vineboom.mp3");
 var boowompSound = new Audio("sounds/boowomp.mp3");
@@ -495,6 +501,125 @@ class Cuboid {
             }
         }
     }
+
+    getColors() {
+        // resetEuler
+        var returnList = [];
+        for (var i = 0; i < (this.mesh.triangleList.length / 3); i++) {
+            var sum = new Vector3(0, 0, 0);
+            for (var j = 0; j < 3; j++) {
+                var line1 = this.mesh.triangleList[(3 * i) + j].points[1].sub(this.mesh.triangleList[(3 * i) + j].points[0]);
+                var line2 = this.mesh.triangleList[(3 * i) + j].points[2].sub(this.mesh.triangleList[(3 * i) + j].points[0]);
+                var cross = line1.cross(line2).unit();
+                sum = sum.add(cross);
+            }
+            returnList.push([sum.unit(), this.mesh.triangleList[3 * i].fill]); // add to returnList [vector pointing in direction of corner, fill color]
+        }
+        return returnList;
+        // var points = [...this.mesh.triangleList[i].points];
+
+        // triangleListCopy.sort(function (a, b) {
+        //     if (a.x > b.x) return -1;
+        //     if (a.x < b.x) return 1;
+
+        //     if (a.y > b.y) return -1;
+        //     if (a.y < b.y) return 1;
+
+        //     if (a.z > b.z) return -1;
+        //     if (a.z < b.z) return 1;
+
+        //     return 0;
+        // });
+
+        // // colors 1, 2, 3, 4
+        // return [this.mesh.triangleList[0].fill, this.mesh.triangleList[3].fill, this.mesh.triangleList[6].fill, this.mesh.triangleList[9].fill]
+    }
+}
+
+function roundTo(num, decimals) {
+    return Math.floor(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
+}
+
+function getCuboidColorFromDirection(cuboidIndex, direction) {
+    var dir = direction.unit();
+    var colors = puzzle[cuboidIndex].getColors();
+    for (var i = 0; i < colors.length; i++) {
+        var vec = colors[i][0];
+        // unrotate it (?)
+        vec = new Vector3(vec.x * puzzle[cuboidIndex].mesh.localAxis[0].x + vec.y * puzzle[cuboidIndex].mesh.localAxis[0].y + vec.z * puzzle[cuboidIndex].mesh.localAxis[0].z,
+                          vec.x * puzzle[cuboidIndex].mesh.localAxis[1].x + vec.y * puzzle[cuboidIndex].mesh.localAxis[1].y + vec.z * puzzle[cuboidIndex].mesh.localAxis[1].z,
+                          vec.x * puzzle[cuboidIndex].mesh.localAxis[2].x + vec.y * puzzle[cuboidIndex].mesh.localAxis[2].y + vec.z * puzzle[cuboidIndex].mesh.localAxis[2].z);
+        // fix rounding errors bruh ._.
+        if (roundTo(vec.x, 10) == roundTo(dir.x, 10) && roundTo(vec.y, 10) == roundTo(dir.y, 10) && roundTo(vec.z, 10) == roundTo(dir.z, 10)) {
+            return colors[i][1];
+        }
+    }
+    return -1;
+}
+
+var prevHasBeenSolved = false;
+var hasBeenSolved = false;
+function checkSolved() {
+    // check "red" (on default)
+    var red = getCuboidColorFromDirection(0, new Vector3(-1, 1, 1));
+    var redCheck = false;
+    if (getCuboidColorFromDirection(1, new Vector3(-1, -1, 1)) == red && getCuboidColorFromDirection(2, new Vector3(-1, 1, -1)) == red && getCuboidColorFromDirection(3, new Vector3(-1, -1, -1)) == red && getCuboidColorFromDirection(10, new Vector3(1, -1, -1)) == red && getCuboidColorFromDirection(11, new Vector3(1, 1, -1)) == red && getCuboidColorFromDirection(9, new Vector3(1, 1, 1)) == red && getCuboidColorFromDirection(8, new Vector3(1, -1, 1)) == red) {
+        redCheck = true;
+    }
+    var orange = getCuboidColorFromDirection(12, new Vector3(-1, 1, 1));
+    var orangeCheck = false;
+    if (getCuboidColorFromDirection(13, new Vector3(-1, -1, 1)) == orange && getCuboidColorFromDirection(14, new Vector3(-1, 1, -1)) == orange && getCuboidColorFromDirection(15, new Vector3(-1, -1, -1)) == orange && getCuboidColorFromDirection(6, new Vector3(1, -1, -1)) == orange && getCuboidColorFromDirection(7, new Vector3(1, 1, -1)) == orange && getCuboidColorFromDirection(5, new Vector3(1, 1, 1)) == orange && getCuboidColorFromDirection(4, new Vector3(1, -1, 1)) == orange) {
+        orangeCheck = true;
+    }
+    var green = getCuboidColorFromDirection(2, new Vector3(1, -1, -1));
+    var greenCheck = false;
+    if (getCuboidColorFromDirection(11, new Vector3(-1, -1, -1)) == green && getCuboidColorFromDirection(3, new Vector3(1, 1, -1)) == green && getCuboidColorFromDirection(10, new Vector3(-1, 1, -1)) == green && getCuboidColorFromDirection(14, new Vector3(1, -1, -1)) == green && getCuboidColorFromDirection(7, new Vector3(-1, -1, -1)) == green && getCuboidColorFromDirection(6, new Vector3(-1, 1, -1)) == green && getCuboidColorFromDirection(15, new Vector3(1, 1, -1)) == green) {
+        greenCheck = true;
+    }
+    var blue = getCuboidColorFromDirection(0, new Vector3(1, -1, 1));
+    var blueCheck = false;
+    if (getCuboidColorFromDirection(9, new Vector3(-1, -1, 1)) == blue && getCuboidColorFromDirection(1, new Vector3(1, 1, 1)) == blue && getCuboidColorFromDirection(8, new Vector3(-1, 1, 1)) == blue && getCuboidColorFromDirection(12, new Vector3(1, -1, 1)) == blue && getCuboidColorFromDirection(5, new Vector3(-1, -1, 1)) == blue && getCuboidColorFromDirection(4, new Vector3(-1, 1, 1)) == blue && getCuboidColorFromDirection(13, new Vector3(1, 1, 1)) == blue) {
+        blueCheck = true;
+    }
+    var white = getCuboidColorFromDirection(3, new Vector3(1, -1, 1));
+    var whiteCheck = false;
+    if (getCuboidColorFromDirection(10, new Vector3(-1, -1, 1)) == white && getCuboidColorFromDirection(1, new Vector3(1, -1, -1)) == white && getCuboidColorFromDirection(8, new Vector3(-1, -1, -1)) == white && getCuboidColorFromDirection(15, new Vector3(1, -1, 1)) == white && getCuboidColorFromDirection(6, new Vector3(-1, -1, 1)) == white && getCuboidColorFromDirection(13, new Vector3(1, -1, -1)) == white && getCuboidColorFromDirection(4, new Vector3(-1, -1, -1)) == white) {
+        whiteCheck = true;
+    }
+    var yellow = getCuboidColorFromDirection(2, new Vector3(1, 1, 1));
+    var yellowCheck = false;
+    if (getCuboidColorFromDirection(11, new Vector3(-1, 1, 1)) == yellow && getCuboidColorFromDirection(0, new Vector3(1, 1, -1)) == yellow && getCuboidColorFromDirection(9, new Vector3(-1, 1, -1)) == yellow && getCuboidColorFromDirection(14, new Vector3(1, 1, 1)) == yellow && getCuboidColorFromDirection(7, new Vector3(-1, 1, 1)) == yellow && getCuboidColorFromDirection(12, new Vector3(1, 1, -1)) == yellow && getCuboidColorFromDirection(5, new Vector3(-1, 1, -1)) == yellow) {
+        yellowCheck = true;
+    }
+    var pink = getCuboidColorFromDirection(10, new Vector3(1, 1, 1));
+    var pinkCheck = false;
+    if (getCuboidColorFromDirection(11, new Vector3(1, -1, 1)) == pink && getCuboidColorFromDirection(8, new Vector3(1, 1, -1)) == pink && getCuboidColorFromDirection(9, new Vector3(1, -1, -1)) == pink && getCuboidColorFromDirection(14, new Vector3(-1, -1, 1)) == pink && getCuboidColorFromDirection(15, new Vector3(-1, 1, 1)) == pink && getCuboidColorFromDirection(12, new Vector3(-1, -1, -1)) == pink && getCuboidColorFromDirection(13, new Vector3(-1, 1, -1)) == pink) {
+        pinkCheck = true;
+    }
+    var purple = getCuboidColorFromDirection(3, new Vector3(-1, 1, 1));
+    var purpleCheck = false;
+    if (getCuboidColorFromDirection(2, new Vector3(-1, -1, 1)) == purple && getCuboidColorFromDirection(1, new Vector3(-1, 1, -1)) == purple && getCuboidColorFromDirection(0, new Vector3(-1, -1, -1)) == purple && getCuboidColorFromDirection(7, new Vector3(1, -1, 1)) == purple && getCuboidColorFromDirection(6, new Vector3(1, 1, 1)) == purple && getCuboidColorFromDirection(5, new Vector3(1, -1, -1)) == purple && getCuboidColorFromDirection(4, new Vector3(1, 1, -1)) == purple) {
+        purpleCheck = true;
+    }
+
+    // do opposites check (red opp orange, yellow opp white, etc.)
+    function checkOpposites(col1, col2) {
+        if (colorScheme.indexOf(col1) % 2 == 0) {
+            if (colorScheme.indexOf(col2) != colorScheme.indexOf(col1) + 1) {
+                return false;
+            }
+        } else {
+            if (colorScheme.indexOf(col2) != colorScheme.indexOf(col1) - 1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    if (redCheck && orangeCheck && greenCheck && blueCheck && whiteCheck && yellowCheck && pinkCheck && purpleCheck && checkOpposites(red, orange) && checkOpposites(white, yellow) && checkOpposites(blue, green) && checkOpposites(pink, purple)) {
+        return true;
+    }
+    return false;
 }
 
 // white yellow red orange green blue pink purple
@@ -1238,6 +1363,123 @@ function animateTurn(puzzle, stick) {
             }
             break;
         }
+        case "x": {
+            for (var i = 0; i < 16; i++) {
+                puzzle[i].localAxisLocalTurn(-angleIncrement, 0, 0);
+            }
+
+            if (stick) {
+                // reassign cuboid indices
+                // rx
+                var prev = [puzzle[0], puzzle[1], puzzle[2], puzzle[3], puzzle[8], puzzle[9], puzzle[10], puzzle[11]];
+                puzzle[0] = prev[1];
+                puzzle[1] = prev[3];
+                puzzle[2] = prev[0];
+                puzzle[3] = prev[2];
+                puzzle[8] = prev[6];
+                puzzle[9] = prev[4];
+                puzzle[10] = prev[7];
+                puzzle[11] = prev[5];
+                // lx
+                prev = [puzzle[4], puzzle[5], puzzle[6], puzzle[7], puzzle[12], puzzle[13], puzzle[14], puzzle[15]];
+                puzzle[4] = prev[2];
+                puzzle[5] = prev[0];
+                puzzle[6] = prev[3];
+                puzzle[7] = prev[1];
+                puzzle[12] = prev[5];
+                puzzle[13] = prev[7];
+                puzzle[14] = prev[4];
+                puzzle[15] = prev[6];
+            }
+            break;
+        }
+        case "xp": {
+            for (var i = 0; i < 16; i++) {
+                puzzle[i].localAxisLocalTurn(angleIncrement, 0, 0);
+            }
+
+            if (stick) {
+                // reassign cuboid indices
+                // rxp
+                var prev = [puzzle[0], puzzle[1], puzzle[2], puzzle[3], puzzle[8], puzzle[9], puzzle[10], puzzle[11]];
+                puzzle[0] = prev[2];
+                puzzle[1] = prev[0];
+                puzzle[2] = prev[3];
+                puzzle[3] = prev[1];
+                puzzle[8] = prev[5];
+                puzzle[9] = prev[7];
+                puzzle[10] = prev[4];
+                puzzle[11] = prev[6];
+                // lxp
+                prev = [puzzle[4], puzzle[5], puzzle[6], puzzle[7], puzzle[12], puzzle[13], puzzle[14], puzzle[15]];
+                puzzle[4] = prev[1];
+                puzzle[5] = prev[3];
+                puzzle[6] = prev[0];
+                puzzle[7] = prev[2];
+                puzzle[12] = prev[6];
+                puzzle[13] = prev[4];
+                puzzle[14] = prev[7];
+                puzzle[15] = prev[5];
+            }
+            break;
+        }
+        case "y2": {
+            for (var i = 0; i < 16; i++) {
+                puzzle[i].localAxisLocalTurn(0, 2*angleIncrement, 0);
+            }
+
+            if (stick) {
+                // reassign cuboid indices
+                var prev = [puzzle[0], puzzle[2], puzzle[5], puzzle[7], puzzle[9], puzzle[11], puzzle[12], puzzle[14]];
+                puzzle[0] = prev[3];
+                puzzle[2] = prev[2];
+                puzzle[5] = prev[1];
+                puzzle[7] = prev[0];
+                puzzle[9] = prev[7];
+                puzzle[11] = prev[6];
+                puzzle[12] = prev[5];
+                puzzle[14] = prev[4];
+                prev = [puzzle[1], puzzle[3], puzzle[4], puzzle[6], puzzle[8], puzzle[10], puzzle[13], puzzle[15]];
+                puzzle[1] = prev[3];
+                puzzle[3] = prev[2];
+                puzzle[4] = prev[1];
+                puzzle[6] = prev[0];
+                puzzle[8] = prev[7];
+                puzzle[10] = prev[6];
+                puzzle[13] = prev[5];
+                puzzle[15] = prev[4];
+            }
+            break;
+        }
+        case "z2": {
+            for (var i = 0; i < 16; i++) {
+                puzzle[i].localAxisLocalTurn(0, 0, 2*angleIncrement);
+            }
+
+            if (stick) {
+                // f2
+                var prev = [puzzle[2], puzzle[3], puzzle[6], puzzle[7], puzzle[10], puzzle[11], puzzle[14], puzzle[15]];
+                puzzle[2] = prev[2];
+                puzzle[3] = prev[3];
+                puzzle[6] = prev[0];
+                puzzle[7] = prev[1];
+                puzzle[10] = prev[6];
+                puzzle[11] = prev[7];
+                puzzle[14] = prev[4];
+                puzzle[15] = prev[5];
+                // b2
+                prev = [puzzle[0], puzzle[1], puzzle[4], puzzle[5], puzzle[8], puzzle[9], puzzle[12], puzzle[13]];
+                puzzle[0] = prev[2];
+                puzzle[1] = prev[3];
+                puzzle[4] = prev[0];
+                puzzle[5] = prev[1];
+                puzzle[8] = prev[6];
+                puzzle[9] = prev[7];
+                puzzle[12] = prev[4];
+                puzzle[13] = prev[5];
+            }
+            break;
+        }
         case "gyroA": {
             puzzle[14].mesh.translateLocalMesh(new Vector3(0, -animationIncrement, 0));
             puzzle[7].mesh.translateLocalMesh(new Vector3(0, -animationIncrement, 0));
@@ -1559,6 +1801,8 @@ function highlightPiece(i) {
     }
 }
 
+var backgroundColor = [0, 0, 0];
+
 var recentTimeout;
 function handleTurning() {
     if (animationProgress > 0.99 && animating == ANIMATION.TURN) {
@@ -1566,6 +1810,16 @@ function handleTurning() {
         animateTurn(puzzle, true);
         animationProgress = 0;
         animationIncrement = 0;
+        if (!scrambling && hasBeenScrambled) {
+            hasBeenSolved = checkSolved();
+        }
+        if (hasBeenSolved != prevHasBeenSolved) {
+            prevHasBeenSolved = hasBeenSolved;
+            if (hasBeenSolved) {
+                backgroundColor[1] = 255;
+                solveSound.cloneNode(true).play();
+            }
+        }
         if (turnType == "gyroA") {
             turnType = "gyroB";
             animating = ANIMATION.WAIT_SUCCESSIVE_ANIM;
@@ -1575,7 +1829,7 @@ function handleTurning() {
             animating = ANIMATION.WAIT_SUCCESSIVE_ANIM;
             recentTimeout = setTimeout(() => {animating = ANIMATION.TURN}, (instantGyros || scrambling) ? 5 : 100);
         } else if (turnType == "gyroC") {
-            if (instantGyros) { turnSpeed = speedList[turnSpeedIndex] / 15; }
+            if (instantGyros && !scrambling) { turnSpeed = speedList[turnSpeedIndex] / 15; }
         }
         if (turnType == "gyropA") {
             turnType = "gyropB";
@@ -1586,7 +1840,7 @@ function handleTurning() {
             animating = ANIMATION.WAIT_SUCCESSIVE_ANIM;
             recentTimeout = setTimeout(() => {animating = ANIMATION.TURN}, (instantGyros || scrambling) ? 5 : 100);
         } else if (turnType == "gyropC") {
-            if (instantGyros) { turnSpeed = speedList[turnSpeedIndex] / 15; }
+            if (instantGyros && !scrambling) { turnSpeed = speedList[turnSpeedIndex] / 15; }
         }
         if (scrambling) {
             scrambleTurnCount++;
@@ -1739,6 +1993,34 @@ function handleTurning() {
         turnType = "d2";
         animating = ANIMATION.TURN;
     }
+    // x
+    if (checkKeyBind(keyBinds.xTurn) && animating == ANIMATION.NONE) {
+        animationProgress = 0;
+        animationIncrement = 0;
+        turnType = "x";
+        animating = ANIMATION.TURN;
+    }
+    // x'
+    if (checkKeyBind(keyBinds.xPrimeTurn) && animating == ANIMATION.NONE) {
+        animationProgress = 0;
+        animationIncrement = 0;
+        turnType = "xp";
+        animating = ANIMATION.TURN;
+    }
+    // y2
+    if (checkKeyBind(keyBinds.y2Turn) && animating == ANIMATION.NONE) {
+        animationProgress = 0;
+        animationIncrement = 0;
+        turnType = "y2";
+        animating = ANIMATION.TURN;
+    }
+    // z2
+    if (checkKeyBind(keyBinds.z2Turn) && animating == ANIMATION.NONE) {
+        animationProgress = 0;
+        animationIncrement = 0;
+        turnType = "z2";
+        animating = ANIMATION.TURN;
+    }
     // gyro
     if (checkKeyBind(keyBinds.gyro) && animating == ANIMATION.NONE) {
         if ((instantGyros && instantGyroTimer > instantGyroDelay) || (!instantGyros)) {
@@ -1767,7 +2049,11 @@ function handleTurning() {
             if (turnType == "gyroA" || turnType == "gyropA") {
                 gyroSound.cloneNode(true).play();
             } else if (turnType != "gyroB" && turnType != "gyroC" && turnType != "gyropB" && turnType != "gyropC") {
-                turnSound.cloneNode(true).play()
+                if (turnType == "x" || turnType == "xp" || turnType == "y2" || turnType == "z2") {
+                    orient2Sound.cloneNode(true).play();
+                } else {
+                    turnSound.cloneNode(true).play()
+                }
             }
         } else if (soundEffectsOn == 2) {
             if (turnType == "gyroA" || turnType == "gyropA") {
@@ -1825,6 +2111,7 @@ function renderSettingsButton() {
 var scrambling = false;
 var scrambleTurn = "";
 var scrambleTurnCount = 0;
+var hasBeenScrambled = false;
 var targetScrambleTurnCount = 28;
 function renderScrambleButton() {
     // box
@@ -1864,6 +2151,8 @@ function renderResetButton() {
         if (mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
             clearTimeout(recentTimeout);
             scrambling = false;
+            hasBeenScrambled = false;
+            hasBeenSolved = false;
             turnSpeed = speedList[turnSpeedIndex] / 15;
             animationProgress = 0;
             animating = ANIMATION.NONE;
@@ -1997,6 +2286,10 @@ function renderSettingsScreenButtons() {
     keyBinds.f2Turn = renderKeybind(keyBinds.f2Turn, "F2", keyBindHeight); keyBindHeight += 60;
     keyBinds.d2Turn = renderKeybind(keyBinds.d2Turn, "D2", keyBindHeight); keyBindHeight += 60;
     keyBinds.b2Turn = renderKeybind(keyBinds.b2Turn, "B2", keyBindHeight); keyBindHeight += 60;
+    keyBinds.xTurn = renderKeybind(keyBinds.xTurn, "x", keyBindHeight); keyBindHeight += 60;
+    keyBinds.xPrimeTurn = renderKeybind(keyBinds.xPrimeTurn, "x'", keyBindHeight); keyBindHeight += 60;
+    keyBinds.y2Turn = renderKeybind(keyBinds.y2Turn, "y2", keyBindHeight); keyBindHeight += 60;
+    keyBinds.z2Turn = renderKeybind(keyBinds.z2Turn, "z2", keyBindHeight); keyBindHeight += 60;
     keyBinds.gyro = renderKeybind(keyBinds.gyro, "Gryo", keyBindHeight); keyBindHeight += 60;
     keyBinds.gyroPrime = renderKeybind(keyBinds.gyroPrime, "Gryo'", keyBindHeight); keyBindHeight += 60;
 
@@ -2129,9 +2422,16 @@ function main() {
             resetRotationTimer += deltaTime;
             instantGyroTimer += deltaTime;
 
+            // fade background to black
+            for (var i = 0; i < 3; i++) {
+                if (backgroundColor[i] > 0) {
+                    backgroundColor[i] = Math.max(0, backgroundColor[i] - deltaTime);
+                }
+            }
+
             // render background
             ctx.beginPath();
-            ctx.fillStyle = "#000000ff";
+            ctx.fillStyle = `rgba(${backgroundColor[0]}, ${backgroundColor[1]}, ${backgroundColor[2]}, 1)`;
             ctx.fillRect(0, 0, c.width, c.height);
 
             // separate when key press
@@ -2148,9 +2448,11 @@ function main() {
             }
 
             if (!meshSeparated && scaleDistance == 0) { // temporary, until conflict resolved
-                if (scrambling){// && animationProgress == 0) {
+                if (scrambling) {
                     if (scrambleTurnCount > targetScrambleTurnCount) {
                         scrambling = false;
+                        hasBeenSolved = false;
+                        hasBeenScrambled = true;
                         turnSpeed = speedList[turnSpeedIndex] / 15;
                     } else {
                         scrambleTurn = ['lx','ly','lz','rx','ry','rz','ix','ox','lxp','lyp','lzp','rxp','ryp','rzp','ixp','oxp','u2','f2','d2','b2','gyroA','gyropA'][Math.floor(Math.random() * 22)];
@@ -2213,6 +2515,14 @@ function main() {
 
             // reset button
             renderResetButton();
+
+            // render solved
+            if (hasBeenSolved) {
+                ctx.beginPath();
+                ctx.fillStyle = "#00ff00ff";
+                ctx.font = "20px Courier New";
+                ctx.fillText("Solved!", 20, 120);
+            }
 
             break;
         }
