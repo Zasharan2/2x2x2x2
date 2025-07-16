@@ -15,6 +15,8 @@ function updateCanvasSize() {
 var keyBinds = {
     separate: [" "],
     resetOrientation: ["c"],
+    undo: ["Control", "z"],
+    redo: ["Control", "Z"],
     lxTurn: ["l", "x"],
     lyTurn: ["l", "y"],
     lzTurn: ["l", "z"],
@@ -1809,8 +1811,40 @@ function highlightPiece(i) {
 }
 
 var backgroundColor = [0, 0, 0];
+var turnList = [];
+var turnListIndex = -1;
+var oppositeTurns = {
+    "lx": "lxp",
+    "lxp": "lx",
+    "ly": "lyp",
+    "lyp": "ly",
+    "lz": "lzp",
+    "lzp": "lz",
+    "rx": "rxp",
+    "rxp": "rx",
+    "ry": "ryp",
+    "ryp": "ry",
+    "rz": "rzp",
+    "rzp": "rz",
+    "ix": "ixp",
+    "ixp": "ix",
+    "ox": "oxp",
+    "oxp": "ox",
+    "u2": "u2",
+    "f2": "f2",
+    "d2": "d2",
+    "b2": "b2",
+    "x": "xp",
+    "xp": "x",
+    "y2": "y2",
+    "z2": "z2",
+    "gyroA": "gyropA",
+    "gyropA": "gyroA",
+};
 
 var recentTimeout;
+var undoMove = false;
+var redoMove = false;
 function handleTurning() {
     if (animationProgress > 0.99 && animating == ANIMATION.TURN) {
         animating = ANIMATION.NONE;
@@ -1826,6 +1860,19 @@ function handleTurning() {
                 backgroundColor[1] = 255;
                 solveSound.cloneNode(true).play();
             }
+        }
+        if (!scrambling && !undoMove && !redoMove && (turnType != "gyroB" && turnType != "gyroC" && turnType != "gyropB" && turnType != "gyropC")) {
+            turnListIndex++;
+            if (turnListIndex < turnList.length) {
+                turnList.length = turnListIndex;
+            }
+            turnList.push(turnType);
+        }
+        if (undoMove) {
+            undoMove = false;
+        }
+        if (redoMove) {
+            redoMove = false;
         }
         if (turnType == "gyroA") {
             turnType = "gyroB";
@@ -1851,6 +1898,14 @@ function handleTurning() {
         }
         if (scrambling) {
             scrambleTurnCount++;
+            if (scrambleTurnCount > targetScrambleTurnCount) {
+                scrambling = false;
+                turnList = [];
+                turnListIndex = -1;
+                hasBeenSolved = false;
+                hasBeenScrambled = true;
+                turnSpeed = speedList[turnSpeedIndex] / 15;
+            }
         }
     }
     // scramble
@@ -1859,6 +1914,50 @@ function handleTurning() {
         animationIncrement = 0;
         turnType = scrambleTurn;
         animating = ANIMATION.TURN;
+    }
+    // undo
+    if (checkKeyBind(keyBinds.undo) && animating == ANIMATION.NONE) {
+        // else, cannot undo
+        if (turnList.length > 0 && turnListIndex >= 0) {
+            turnType = oppositeTurns[turnList[turnListIndex--]];
+            if (turnType == "gyroA" || turnType == "gyropA") {
+                undoMove = true;
+                if ((instantGyros && instantGyroTimer > instantGyroDelay) || (!instantGyros)) {
+                    animationProgress = 0;
+                    animationIncrement = 0;
+                    if (instantGyros) { turnSpeed = 1000; }
+                    animating = ANIMATION.TURN;
+                    instantGyroTimer = 0;
+                }
+            } else {
+                undoMove = true;
+                animationProgress = 0;
+                animationIncrement = 0;
+                animating = ANIMATION.TURN;
+            }
+        }
+    }
+    // redo
+    if (checkKeyBind(keyBinds.redo) && animating == ANIMATION.NONE) {
+        // else, cannot undo
+        if (turnList.length > 0 && turnListIndex < turnList.length - 1) {
+            turnType = turnList[++turnListIndex];
+            if (turnType == "gyroA" || turnType == "gyropA") {
+                redoMove = true;
+                if ((instantGyros && instantGyroTimer > instantGyroDelay) || (!instantGyros)) {
+                    animationProgress = 0;
+                    animationIncrement = 0;
+                    if (instantGyros) { turnSpeed = 1000; }
+                    animating = ANIMATION.TURN;
+                    instantGyroTimer = 0;
+                }
+            } else {
+                redoMove = true;
+                animationProgress = 0;
+                animationIncrement = 0;
+                animating = ANIMATION.TURN;
+            }
+        }
     }
     // lx
     if (checkKeyBind(keyBinds.lxTurn) && animating == ANIMATION.NONE) {
@@ -2119,7 +2218,7 @@ var scrambling = false;
 var scrambleTurn = "";
 var scrambleTurnCount = 0;
 var hasBeenScrambled = false;
-var targetScrambleTurnCount = 28;
+var targetScrambleTurnCount = 29;
 function renderScrambleButton() {
     // box
     ctx.beginPath();
@@ -2127,6 +2226,8 @@ function renderScrambleButton() {
         ctx.fillStyle = "#80808080";
         if (mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
             scrambling = true;
+            turnList = [];
+            turnListIndex = -1;
             scrambleTurn = "";
             scrambleTurnCount = 0;
             turnSpeed = 1;
@@ -2158,6 +2259,8 @@ function renderResetButton() {
         if (mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
             clearTimeout(recentTimeout);
             scrambling = false;
+            turnList = [];
+            turnListIndex = -1;
             hasBeenScrambled = false;
             hasBeenSolved = false;
             turnSpeed = speedList[turnSpeedIndex] / 15;
@@ -2254,10 +2357,10 @@ function renderSettingsScreenButtons() {
     ctx.font = "40px Courier New";
     message = "";
     ctx.fillStyle = "#ffffffff";
-    message = `Scramble Count: ${targetScrambleTurnCount + 2}`;
+    message = `Scramble Count: ${targetScrambleTurnCount + 1}`;
     if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), 270 + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         mouseDown = false;
-        targetScrambleTurnCount = Number(prompt(`Type the number of turns to make per scramble:`)) - 2;
+        targetScrambleTurnCount = Number(prompt(`Type the number of turns to make per scramble:`)) - 1;
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
             orientSound.cloneNode(true).play();
@@ -2273,6 +2376,8 @@ function renderSettingsScreenButtons() {
 
     keyBinds.separate = renderKeybind(keyBinds.separate, "Separate", keyBindHeight); keyBindHeight += 60;
     keyBinds.resetOrientation = renderKeybind(keyBinds.resetOrientation, "Reorient", keyBindHeight); keyBindHeight += 60;
+    keyBinds.undo = renderKeybind(keyBinds.undo, "Undo", keyBindHeight); keyBindHeight += 60;
+    keyBinds.redo = renderKeybind(keyBinds.redo, "Redo", keyBindHeight); keyBindHeight += 60;
     keyBinds.lxTurn = renderKeybind(keyBinds.lxTurn, "Lx", keyBindHeight); keyBindHeight += 60;
     keyBinds.lxPrimeTurn = renderKeybind(keyBinds.lxPrimeTurn, "Lx'", keyBindHeight); keyBindHeight += 60;
     keyBinds.lyTurn = renderKeybind(keyBinds.lyTurn, "Ly", keyBindHeight); keyBindHeight += 60;
@@ -2458,6 +2563,8 @@ function main() {
                 if (scrambling) {
                     if (scrambleTurnCount > targetScrambleTurnCount) {
                         scrambling = false;
+                        turnList = [];
+                        turnListIndex = -1;
                         hasBeenSolved = false;
                         hasBeenScrambled = true;
                         turnSpeed = speedList[turnSpeedIndex] / 15;
