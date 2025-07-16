@@ -15,8 +15,6 @@ function updateCanvasSize() {
 var keyBinds = {
     separate: [" "],
     resetOrientation: ["c"],
-    undo: ["Control", "z"],
-    redo: ["Control", "Z"],
     lxTurn: ["l", "x"],
     lyTurn: ["l", "y"],
     lzTurn: ["l", "z"],
@@ -1969,7 +1967,7 @@ function handleTurning() {
         animating = ANIMATION.TURN;
     }
     // undo
-    if (checkKeyBind(keyBinds.undo) && animating == ANIMATION.NONE) {
+    if (keys["Control"] && keys["z"] && animating == ANIMATION.NONE) {
         // else, cannot undo
         if (turnList.length > 0 && turnListIndex >= 0) {
             turnType = oppositeTurns[turnList[turnListIndex--]];
@@ -1991,8 +1989,8 @@ function handleTurning() {
         }
     }
     // redo
-    if (checkKeyBind(keyBinds.redo) && animating == ANIMATION.NONE) {
-        // else, cannot undo
+    if (((keys["Control"] && keys["Z"]) || (keys["Control"] && keys["y"])) && animating == ANIMATION.NONE) {
+        // else, cannot redo
         if (turnList.length > 0 && turnListIndex < turnList.length - 1) {
             turnType = turnList[++turnListIndex];
             if (turnType == "gyroA" || turnType == "gyropA") {
@@ -2430,8 +2428,6 @@ function renderSettingsScreenButtons() {
 
     keyBinds.separate = renderKeybind(keyBinds.separate, "Separate", keyBindHeight); keyBindHeight += 60;
     keyBinds.resetOrientation = renderKeybind(keyBinds.resetOrientation, "Reorient", keyBindHeight); keyBindHeight += 60;
-    keyBinds.undo = renderKeybind(keyBinds.undo, "Undo", keyBindHeight); keyBindHeight += 60;
-    keyBinds.redo = renderKeybind(keyBinds.redo, "Redo", keyBindHeight); keyBindHeight += 60;
     keyBinds.lxTurn = renderKeybind(keyBinds.lxTurn, "Lx", keyBindHeight); keyBindHeight += 60;
     keyBinds.lxPrimeTurn = renderKeybind(keyBinds.lxPrimeTurn, "Lx'", keyBindHeight); keyBindHeight += 60;
     keyBinds.lyTurn = renderKeybind(keyBinds.lyTurn, "Ly", keyBindHeight); keyBindHeight += 60;
@@ -2649,7 +2645,7 @@ function main() {
             }
 
             // mouse rotation
-            if (mouseDown && mouseButton == 2) {
+            if (mouseDown && (mouseButton == 1 || mouseButton == 2)) {
                 for (var i = 0; i < puzzle.length; i++) {
                     puzzle[i].mesh.rotateEulerLocal(mouseDelta.y, -mouseDelta.x, 0);
                     // puzzle[i].mesh.rotateEulerLocal(mouseDelta.y / deltaTime, -mouseDelta.x / deltaTime, 0);
