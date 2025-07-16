@@ -113,6 +113,14 @@ var boowompSound = new Audio("sounds/boowomp.mp3");
 var brainfartSound = new Audio("sounds/brainfart.mp3");
 var fartSound = new Audio("sounds/fart.mp3");
 
+function playAudio(audio, affectedBySpeed) {
+    var temp = audio.cloneNode(true);
+    if (affectedBySpeed) {
+        temp.playbackRate = Math.min(16, turnSpeed * 12);
+    }
+    temp.play();
+}
+
 var soundEffectsOn = 1;
 
 class Vector3 {
@@ -698,7 +706,6 @@ const ANIMATION = {
 // separation code
 // toggle separate, reset anim progress
 var separated = false;
-var meshSeparated = false;
 var animating = ANIMATION.NONE;
 var animationProgress = 0;
 var animationIncrement = 0;
@@ -707,10 +714,7 @@ function toggleSeparate() {
     animationIncrement = 0;
     animating = ANIMATION.SEPARATE;
     separated = !separated;
-    orientSound.cloneNode(true).play();
-    if (separated) {
-        meshSeparated = true;
-    }
+    playAudio(orientSound, false);
 }
 
 // slowly animate smoothly
@@ -761,7 +765,6 @@ function stickSeparation(puzzle) {
             puzzle[i].mesh.translateLocalMesh(new Vector3(1 * animationIncrement, 0, 0));
             puzzle[i + 8].mesh.translateLocalMesh(new Vector3(1 * animationIncrement, 0, 0));
         }
-        meshSeparated = false;
     }
 }
 
@@ -894,6 +897,20 @@ function determineTurnIncrement(stick) {
 
 function animateTurn(puzzle, stick) {
     determineTurnIncrement(stick);
+
+    var separateBeforeTurn = (separated && (turnType != "u2" && turnType != "f2" && turnType != "d2" && turnType != "b2" && turnType != "y2" && turnType != "z2" && turnType != "gyroA" && turnType != "gyropA"))
+
+    // unseparate before turn
+    if (separateBeforeTurn) {
+        for (var i = 0; i < 4; i++) {
+            puzzle[i].mesh.translateLocalMesh(new Vector3(-1, 0, 0));
+            puzzle[i + 8].mesh.translateLocalMesh(new Vector3(-1, 0, 0));
+        }
+        for (var i = 4; i < 8; i++) {
+            puzzle[i].mesh.translateLocalMesh(new Vector3(1, 0, 0));
+            puzzle[i + 8].mesh.translateLocalMesh(new Vector3(1, 0, 0));
+        }
+    }
 
     switch (turnType) {
         case "lx": {
@@ -1508,6 +1525,18 @@ function animateTurn(puzzle, stick) {
             puzzle[0].mesh.translateLocalMesh(new Vector3(-animationIncrement, 0, 0));
             puzzle[9].mesh.translateLocalMesh(new Vector3(-3 * animationIncrement, 0, 0));
 
+            if (separated) {
+                puzzle[15].mesh.translateLocalMesh(new Vector3(2 * animationIncrement, 0, 0));
+                puzzle[6].mesh.translateLocalMesh(new Vector3(2 * animationIncrement, 0, 0));
+                puzzle[2].mesh.translateLocalMesh(new Vector3(-2 * animationIncrement, 0, 0));
+                puzzle[11].mesh.translateLocalMesh(new Vector3(-2 * animationIncrement, 0, 0));
+
+                puzzle[13].mesh.translateLocalMesh(new Vector3(2 * animationIncrement, 0, 0));
+                puzzle[4].mesh.translateLocalMesh(new Vector3(2 * animationIncrement, 0, 0));
+                puzzle[0].mesh.translateLocalMesh(new Vector3(-2 * animationIncrement, 0, 0));
+                puzzle[9].mesh.translateLocalMesh(new Vector3(-2 * animationIncrement, 0, 0));
+            }
+
             if (stick) {
                 // reassign cuboid indices
                 var prev = [puzzle[0], puzzle[1], puzzle[2], puzzle[3], puzzle[4], puzzle[5], puzzle[6], puzzle[7], puzzle[8], puzzle[9], puzzle[10], puzzle[11], puzzle[12], puzzle[13], puzzle[14], puzzle[15]];
@@ -1662,6 +1691,18 @@ function animateTurn(puzzle, stick) {
             puzzle[5].mesh.translateLocalMesh(new Vector3(animationIncrement, 0, 0));
             puzzle[12].mesh.translateLocalMesh(new Vector3(3 * animationIncrement, 0, 0));
 
+            if (separated) {
+                puzzle[14].mesh.translateLocalMesh(new Vector3(2 * animationIncrement, 0, 0));
+                puzzle[7].mesh.translateLocalMesh(new Vector3(2 * animationIncrement, 0, 0));
+                puzzle[10].mesh.translateLocalMesh(new Vector3(-2 * animationIncrement, 0, 0));
+                puzzle[3].mesh.translateLocalMesh(new Vector3(-2 * animationIncrement, 0, 0));
+
+                puzzle[1].mesh.translateLocalMesh(new Vector3(-2 * animationIncrement, 0, 0));
+                puzzle[8].mesh.translateLocalMesh(new Vector3(-2 * animationIncrement, 0, 0));
+                puzzle[5].mesh.translateLocalMesh(new Vector3(2 * animationIncrement, 0, 0));
+                puzzle[12].mesh.translateLocalMesh(new Vector3(2 * animationIncrement, 0, 0));
+            }
+
             if (stick) {
                 // reassign cuboid indices
                 var prev = [puzzle[0], puzzle[1], puzzle[2], puzzle[3], puzzle[4], puzzle[5], puzzle[6], puzzle[7], puzzle[8], puzzle[9], puzzle[10], puzzle[11], puzzle[12], puzzle[13], puzzle[14], puzzle[15]];
@@ -1801,6 +1842,18 @@ function animateTurn(puzzle, stick) {
             break;
         }
     }
+
+    // reseparate after turn
+    if (separateBeforeTurn) {
+        for (var i = 0; i < 4; i++) {
+            puzzle[i].mesh.translateLocalMesh(new Vector3(1, 0, 0));
+            puzzle[i + 8].mesh.translateLocalMesh(new Vector3(1, 0, 0));
+        }
+        for (var i = 4; i < 8; i++) {
+            puzzle[i].mesh.translateLocalMesh(new Vector3(-1, 0, 0));
+            puzzle[i + 8].mesh.translateLocalMesh(new Vector3(-1, 0, 0));
+        }
+    }
 }
 
 // debugging
@@ -1858,7 +1911,7 @@ function handleTurning() {
             prevHasBeenSolved = hasBeenSolved;
             if (hasBeenSolved) {
                 backgroundColor[1] = 255;
-                solveSound.cloneNode(true).play();
+                playAudio(solveSound, false);
             }
         }
         if (!scrambling && !undoMove && !redoMove && (turnType != "gyroB" && turnType != "gyroC" && turnType != "gyropB" && turnType != "gyropC")) {
@@ -2153,19 +2206,19 @@ function handleTurning() {
     if (animating == ANIMATION.TURN && animationProgress == 0) {
         if (soundEffectsOn == 1) {
             if (turnType == "gyroA" || turnType == "gyropA") {
-                gyroSound.cloneNode(true).play();
+                playAudio(gyroSound, true);
             } else if (turnType != "gyroB" && turnType != "gyroC" && turnType != "gyropB" && turnType != "gyropC") {
                 if (turnType == "x" || turnType == "xp" || turnType == "y2" || turnType == "z2") {
-                    orient2Sound.cloneNode(true).play();
+                    playAudio(orient2Sound, true);
                 } else {
-                    turnSound.cloneNode(true).play()
+                    playAudio(turnSound, !scrambling);
                 }
             }
         } else if (soundEffectsOn == 2) {
             if (turnType == "gyroA" || turnType == "gyropA") {
-                brainfartSound.cloneNode(true).play();
+                playAudio(brainfartSound, true);
             } else if (turnType != "gyroB" && turnType != "gyroC" && turnType != "gyropB" && turnType != "gyropC") {
-                vineboomSound.cloneNode(true).play()
+                playAudio(vineboomSound, true);
             }
         }
     }
@@ -2201,9 +2254,9 @@ function renderSettingsButton() {
                 screen = SCREENTYPE.SETTINGS_TO_PUZZLE;
             }
             if (soundEffectsOn == 1) {
-                orientSound.cloneNode(true).play();
+                playAudio(orientSound, false);
             } else if (soundEffectsOn == 2) {
-                fartSound.cloneNode(true).play();
+                playAudio(fartSound, false);
             }
             settingsButtonTimer = 0;
         }
@@ -2232,9 +2285,9 @@ function renderScrambleButton() {
             scrambleTurnCount = 0;
             turnSpeed = 1;
             if (soundEffectsOn == 1) {
-                orientSound.cloneNode(true).play();
+                playAudio(orientSound, false);
             } else if (soundEffectsOn == 2) {
-                fartSound.cloneNode(true).play();
+                playAudio(fartSound, false);
             }
             settingsButtonTimer = 0;
         }
@@ -2261,6 +2314,7 @@ function renderResetButton() {
             scrambling = false;
             turnList = [];
             turnListIndex = -1;
+            separated = false;
             hasBeenScrambled = false;
             hasBeenSolved = false;
             turnSpeed = speedList[turnSpeedIndex] / 15;
@@ -2269,9 +2323,9 @@ function renderResetButton() {
             puzzle = create2to4(new Vector3(0, 0, 2));
             referenceAxisMesh.resetEuler();
             if (soundEffectsOn == 1) {
-                orientSound.cloneNode(true).play();
+                playAudio(orientSound, false);
             } else if (soundEffectsOn == 2) {
-                fartSound.cloneNode(true).play();
+                playAudio(fartSound, false);
             }
             settingsButtonTimer = 0;
         }
@@ -2305,9 +2359,9 @@ function renderSettingsScreenButtons() {
     if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), 90 + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         soundEffectsOn++; soundEffectsOn %= 3;
         if (soundEffectsOn == 1) {
-            orientSound.cloneNode(true).play();
+            playAudio(orientSound, false);
         } else if (soundEffectsOn == 2) {
-            fartSound.cloneNode(true).play();
+            playAudio(fartSound, false);
         }
         settingsButtonTimer = 0;
     }
@@ -2323,9 +2377,9 @@ function renderSettingsScreenButtons() {
         turnSpeed = speedList[turnSpeedIndex] / 15;
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
-            orientSound.cloneNode(true).play();
+            playAudio(orientSound, false);
         } else if (soundEffectsOn == 2) {
-            fartSound.cloneNode(true).play();
+            playAudio(fartSound, false);
         }
     }
     ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), 180 + settingsScroll);
@@ -2345,9 +2399,9 @@ function renderSettingsScreenButtons() {
         instantGyros = !instantGyros;
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
-            orientSound.cloneNode(true).play();
+            playAudio(orientSound, false);
         } else if (soundEffectsOn == 2) {
-            fartSound.cloneNode(true).play();
+            playAudio(fartSound, false);
         }
     }
     ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), 240 + settingsScroll);
@@ -2363,9 +2417,9 @@ function renderSettingsScreenButtons() {
         targetScrambleTurnCount = Number(prompt(`Type the number of turns to make per scramble:`)) - 1;
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
-            orientSound.cloneNode(true).play();
+            playAudio(orientSound, false);
         } else if (soundEffectsOn == 2) {
-            fartSound.cloneNode(true).play();
+            playAudio(fartSound, false);
         }
     }
     ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), 300 + settingsScroll);
@@ -2428,9 +2482,9 @@ function renderColorSchemeButton(color, colorName, y) {
         var userColor = prompt("Type the desired color in hexadecimal RGBA format. Example format: '#ff0000ff'");
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
-            orientSound.cloneNode(true).play();
+            playAudio(orientSound, false);
         } else if (soundEffectsOn == 2) {
-            fartSound.cloneNode(true).play();
+            playAudio(fartSound, false);
         }
         var newColors = [...colorScheme];
         newColors[newColors.indexOf(color)] = userColor;
@@ -2455,9 +2509,9 @@ function renderKeybind(keyBind, keyBindName, y) {
         }
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
-            orientSound.cloneNode(true).play();
+            playAudio(orientSound, false);
         } else if (soundEffectsOn == 2) {
-            fartSound.cloneNode(true).play();
+            playAudio(fartSound, false);
         }
         return [...userKeyBind];
     }
@@ -2480,9 +2534,9 @@ function renderPasteColors(y) {
         }
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
-            orientSound.cloneNode(true).play();
+            playAudio(orientSound, false);
         } else if (soundEffectsOn == 2) {
-            fartSound.cloneNode(true).play();
+            playAudio(fartSound, false);
         }
     }
 }
@@ -2502,9 +2556,9 @@ function renderPasteKeybind(y) {
         }
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
-            orientSound.cloneNode(true).play();
+            playAudio(orientSound, false);
         } else if (soundEffectsOn == 2) {
-            fartSound.cloneNode(true).play();
+            playAudio(fartSound, false);
         }
     }
 }
@@ -2529,6 +2583,7 @@ function main() {
             break;
         }
         case SCREENTYPE.PUZZLE: {
+            // console.log(separated);
             // update timers
             settingsButtonTimer += deltaTime;
             resetRotationTimer += deltaTime;
@@ -2559,7 +2614,7 @@ function main() {
                 }
             }
 
-            if (!meshSeparated && scaleDistance == 0) { // temporary, until conflict resolved
+            if (scaleDistance == 0) { // temporary, until conflict resolved
                 if (scrambling) {
                     if (scrambleTurnCount > targetScrambleTurnCount) {
                         scrambling = false;
@@ -2586,9 +2641,9 @@ function main() {
                 }
                 referenceAxisMesh.resetEuler();
                 if (soundEffectsOn == 1) {
-                    orientSound.cloneNode(true).play();
+                    playAudio(orientSound, false);
                 } else if (soundEffectsOn == 2) {
-                    boowompSound.cloneNode(true).play();
+                    playAudio(boowompSound, false);
                 }
                 resetRotationTimer = 0;
             }
