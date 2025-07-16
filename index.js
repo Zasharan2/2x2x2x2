@@ -2636,6 +2636,8 @@ function main() {
                 ctx.fillStyle = "#00ff00ff";
                 ctx.font = "20px Courier New";
                 ctx.fillText("Solved!", 20, 120);
+                ctx.fillText(`Scramble Count: ${targetScrambleTurnCount + 1}`, 20, 150);
+                ctx.fillText(`Turn Count: ${turnList.length}`, 20, 180);
             }
 
             break;
