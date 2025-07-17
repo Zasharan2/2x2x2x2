@@ -2273,7 +2273,7 @@ var scrambling = false;
 var scrambleTurn = "";
 var scrambleTurnCount = 0;
 var hasBeenScrambled = false;
-var targetScrambleTurnCount = 99;
+var targetScrambleTurnCount = 49;
 function renderScrambleButton() {
     // box
     ctx.beginPath();
