@@ -88,7 +88,7 @@ window.addEventListener("mouseup", function(event) {
 document.addEventListener("wheel", function(event) {
     switch (screen) {
         case SCREENTYPE.PUZZLE: {
-            if (!scrambling) {
+            if (!scrambling && animating == ANIMATION.NONE) {
                 scaleCuboids(puzzle, -event.deltaY * deltaTime * (1 / 10000))
             }
             break;
@@ -892,6 +892,7 @@ function determineTurnIncrement(stick) {
     }
 }
 
+var prevScaleDistance = 0;
 function animateTurn(puzzle, stick) {
     determineTurnIncrement(stick);
 
@@ -933,15 +934,15 @@ function animateTurn(puzzle, stick) {
         case "ly": {
             for (var i = 4; i < 8; i++) {
                 // move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
 
                 puzzle[i].localAxisLocalTurn(0, angleIncrement, 0);
                 puzzle[i + 8].localAxisLocalTurn(0, angleIncrement, 0);
 
                 // undo move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
             }
 
             if (stick) {
@@ -961,15 +962,15 @@ function animateTurn(puzzle, stick) {
         case "lz": {
             for (var i = 4; i < 8; i++) {
                 // move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
 
                 puzzle[i].localAxisLocalTurn(0, 0, angleIncrement);
                 puzzle[i + 8].localAxisLocalTurn(0, 0, angleIncrement);
 
                 // undo move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
             }
 
             if (stick) {
@@ -1009,15 +1010,15 @@ function animateTurn(puzzle, stick) {
         case "ry": {
             for (var i = 0; i < 4; i++) {
                 // move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
 
                 puzzle[i].localAxisLocalTurn(0, angleIncrement, 0);
                 puzzle[i + 8].localAxisLocalTurn(0, angleIncrement, 0);
 
                 // undo move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
             }
 
             if (stick) {
@@ -1037,15 +1038,15 @@ function animateTurn(puzzle, stick) {
         case "rz": {
             for (var i = 0; i < 4; i++) {
                 // move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
 
                 puzzle[i].localAxisLocalTurn(0, 0, angleIncrement);
                 puzzle[i + 8].localAxisLocalTurn(0, 0, angleIncrement);
 
                 // undo move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
             }
 
             if (stick) {
@@ -1123,15 +1124,15 @@ function animateTurn(puzzle, stick) {
         case "lyp": {
             for (var i = 4; i < 8; i++) {
                 // move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
 
                 puzzle[i].localAxisLocalTurn(0, -angleIncrement, 0);
                 puzzle[i + 8].localAxisLocalTurn(0, -angleIncrement, 0);
 
                 // undo move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
             }
 
             if (stick) {
@@ -1151,15 +1152,15 @@ function animateTurn(puzzle, stick) {
         case "lzp": {
             for (var i = 4; i < 8; i++) {
                 // move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
 
                 puzzle[i].localAxisLocalTurn(0, 0, -angleIncrement);
                 puzzle[i + 8].localAxisLocalTurn(0, 0, -angleIncrement);
 
                 // undo move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
             }
 
             if (stick) {
@@ -1199,15 +1200,15 @@ function animateTurn(puzzle, stick) {
         case "ryp": {
             for (var i = 0; i < 4; i++) {
                 // move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
 
                 puzzle[i].localAxisLocalTurn(0, -angleIncrement, 0);
                 puzzle[i + 8].localAxisLocalTurn(0, -angleIncrement, 0);
 
                 // undo move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
             }
 
             if (stick) {
@@ -1227,15 +1228,15 @@ function animateTurn(puzzle, stick) {
         case "rzp": {
             for (var i = 0; i < 4; i++) {
                 // move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(1 + (2*scaleDistance), 0, 0));
 
                 puzzle[i].localAxisLocalTurn(0, 0, -angleIncrement);
                 puzzle[i + 8].localAxisLocalTurn(0, 0, -angleIncrement);
 
                 // undo move position (and thus rotation axis)
-                puzzle[i].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
-                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-1, 0, 0));
+                puzzle[i].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
+                puzzle[i + 8].mesh.translateLocalPosition(new Vector3(-(1 + (2*scaleDistance)), 0, 0));
             }
 
             if (stick) {
@@ -1504,23 +1505,23 @@ function animateTurn(puzzle, stick) {
             break;
         }
         case "gyroA": {
-            puzzle[14].mesh.translateLocalMesh(new Vector3(0, -animationIncrement, 0));
-            puzzle[7].mesh.translateLocalMesh(new Vector3(0, -animationIncrement, 0));
-            puzzle[15].mesh.translateLocalMesh(new Vector3(3 * animationIncrement, 0, 0));
-            puzzle[6].mesh.translateLocalMesh(new Vector3(animationIncrement, 0, 0));
-            puzzle[3].mesh.translateLocalMesh(new Vector3(0, animationIncrement, 0));
-            puzzle[10].mesh.translateLocalMesh(new Vector3(0, animationIncrement, 0));
-            puzzle[2].mesh.translateLocalMesh(new Vector3(-animationIncrement, 0, 0));
-            puzzle[11].mesh.translateLocalMesh(new Vector3(-3 * animationIncrement, 0, 0));
+            puzzle[14].mesh.translateLocalMesh(new Vector3(0, -(animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[7].mesh.translateLocalMesh(new Vector3(0, -(animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[15].mesh.translateLocalMesh(new Vector3(3 * (animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[6].mesh.translateLocalMesh(new Vector3((animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[3].mesh.translateLocalMesh(new Vector3(0, (animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[10].mesh.translateLocalMesh(new Vector3(0, (animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[2].mesh.translateLocalMesh(new Vector3(-(animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[11].mesh.translateLocalMesh(new Vector3(-3 * (animationIncrement * (1 + 2*scaleDistance)), 0, 0));
 
-            puzzle[13].mesh.translateLocalMesh(new Vector3(3 * animationIncrement, 0, 0));
-            puzzle[4].mesh.translateLocalMesh(new Vector3(animationIncrement, 0, 0));
-            puzzle[1].mesh.translateLocalMesh(new Vector3(0, animationIncrement, 0));
-            puzzle[8].mesh.translateLocalMesh(new Vector3(0, animationIncrement, 0));
-            puzzle[12].mesh.translateLocalMesh(new Vector3(0, -animationIncrement, 0));
-            puzzle[5].mesh.translateLocalMesh(new Vector3(0, -animationIncrement, 0));
-            puzzle[0].mesh.translateLocalMesh(new Vector3(-animationIncrement, 0, 0));
-            puzzle[9].mesh.translateLocalMesh(new Vector3(-3 * animationIncrement, 0, 0));
+            puzzle[13].mesh.translateLocalMesh(new Vector3(3 * (animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[4].mesh.translateLocalMesh(new Vector3((animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[1].mesh.translateLocalMesh(new Vector3(0, (animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[8].mesh.translateLocalMesh(new Vector3(0, (animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[12].mesh.translateLocalMesh(new Vector3(0, -(animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[5].mesh.translateLocalMesh(new Vector3(0, -(animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[0].mesh.translateLocalMesh(new Vector3(-(animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[9].mesh.translateLocalMesh(new Vector3(-3 * (animationIncrement * (1 + 2*scaleDistance)), 0, 0));
 
             if (separated) {
                 puzzle[15].mesh.translateLocalMesh(new Vector3(2 * animationIncrement, 0, 0));
@@ -1558,135 +1559,135 @@ function animateTurn(puzzle, stick) {
             break;
         }
         case "gyroB": {
-            puzzle[15].mesh.translateLocalPosition(new Vector3(-1.5, -0.5, -0.5));
+            puzzle[15].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[15].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[15].mesh.translateLocalPosition(new Vector3(1.5, 0.5, 0.5));
+            puzzle[15].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[6].mesh.translateLocalPosition(new Vector3(-0.5, -0.5, -0.5));
+            puzzle[6].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[6].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[6].mesh.translateLocalPosition(new Vector3(0.5, 0.5, 0.5));
+            puzzle[6].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
 
 
-            puzzle[2].mesh.translateLocalPosition(new Vector3(0.5, 0.5, -0.5));
+            puzzle[2].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[2].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[2].mesh.translateLocalPosition(new Vector3(-0.5, -0.5, 0.5));
+            puzzle[2].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[11].mesh.translateLocalPosition(new Vector3(1.5, 0.5, -0.5));
+            puzzle[11].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[11].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[11].mesh.translateLocalPosition(new Vector3(-1.5, -0.5, 0.5));
+            puzzle[11].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
 
 
-            puzzle[9].mesh.translateLocalPosition(new Vector3(1.5, 0.5, 0.5));
+            puzzle[9].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[9].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[9].mesh.translateLocalPosition(new Vector3(-1.5, -0.5, -0.5));
+            puzzle[9].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[0].mesh.translateLocalPosition(new Vector3(0.5, 0.5, 0.5));
+            puzzle[0].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[0].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[0].mesh.translateLocalPosition(new Vector3(-0.5, -0.5, -0.5));
+            puzzle[0].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
 
 
-            puzzle[13].mesh.translateLocalPosition(new Vector3(-1.5, -0.5, 0.5));
+            puzzle[13].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[13].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[13].mesh.translateLocalPosition(new Vector3(1.5, 0.5, -0.5));
+            puzzle[13].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[4].mesh.translateLocalPosition(new Vector3(-0.5, -0.5, 0.5));
+            puzzle[4].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[4].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[4].mesh.translateLocalPosition(new Vector3(0.5, 0.5, -0.5));
+            puzzle[4].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             break;
         }
         case "gyroC": {
-            puzzle[15].mesh.translateLocalPosition(new Vector3(-1.5, -0.5, -0.5));
+            puzzle[15].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[15].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[15].mesh.translateLocalPosition(new Vector3(1.5, 0.5, 0.5));
+            puzzle[15].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[6].mesh.translateLocalPosition(new Vector3(-0.5, -0.5, -0.5));
+            puzzle[6].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[6].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[6].mesh.translateLocalPosition(new Vector3(0.5, 0.5, 0.5));
+            puzzle[6].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[14].mesh.translateLocalPosition(new Vector3(-1.5, 0.5, -0.5));
+            puzzle[14].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[14].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[14].mesh.translateLocalPosition(new Vector3(1.5, -0.5, 0.5));
+            puzzle[14].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[7].mesh.translateLocalPosition(new Vector3(-0.5, 0.5, -0.5));
+            puzzle[7].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[7].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[7].mesh.translateLocalPosition(new Vector3(0.5, -0.5, 0.5));
+            puzzle[7].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
 
 
-            puzzle[2].mesh.translateLocalPosition(new Vector3(0.5, 0.5, -0.5));
+            puzzle[2].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[2].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[2].mesh.translateLocalPosition(new Vector3(-0.5, -0.5, 0.5));
+            puzzle[2].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[11].mesh.translateLocalPosition(new Vector3(1.5, 0.5, -0.5));
+            puzzle[11].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[11].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[11].mesh.translateLocalPosition(new Vector3(-1.5, -0.5, 0.5));
+            puzzle[11].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[3].mesh.translateLocalPosition(new Vector3(0.5, -0.5, -0.5));
+            puzzle[3].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[3].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[3].mesh.translateLocalPosition(new Vector3(-0.5, 0.5, 0.5));
+            puzzle[3].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[10].mesh.translateLocalPosition(new Vector3(1.5, -0.5, -0.5));
+            puzzle[10].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[10].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[10].mesh.translateLocalPosition(new Vector3(-1.5, 0.5, 0.5));
+            puzzle[10].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
 
 
-            puzzle[9].mesh.translateLocalPosition(new Vector3(1.5, 0.5, 0.5));
+            puzzle[9].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[9].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[9].mesh.translateLocalPosition(new Vector3(-1.5, -0.5, -0.5));
+            puzzle[9].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[0].mesh.translateLocalPosition(new Vector3(0.5, 0.5, 0.5));
+            puzzle[0].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[0].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[0].mesh.translateLocalPosition(new Vector3(-0.5, -0.5, -0.5));
+            puzzle[0].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[8].mesh.translateLocalPosition(new Vector3(1.5, -0.5, 0.5));
+            puzzle[8].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[8].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[8].mesh.translateLocalPosition(new Vector3(-1.5, 0.5, -0.5));
+            puzzle[8].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[1].mesh.translateLocalPosition(new Vector3(0.5, -0.5, 0.5));
+            puzzle[1].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[1].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[1].mesh.translateLocalPosition(new Vector3(-0.5, 0.5, -0.5));
+            puzzle[1].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
 
 
-            puzzle[13].mesh.translateLocalPosition(new Vector3(-1.5, -0.5, 0.5));
+            puzzle[13].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[13].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[13].mesh.translateLocalPosition(new Vector3(1.5, 0.5, -0.5));
+            puzzle[13].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[4].mesh.translateLocalPosition(new Vector3(-0.5, -0.5, 0.5));
+            puzzle[4].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[4].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[4].mesh.translateLocalPosition(new Vector3(0.5, 0.5, -0.5));
+            puzzle[4].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[12].mesh.translateLocalPosition(new Vector3(-1.5, 0.5, 0.5));
+            puzzle[12].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[12].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[12].mesh.translateLocalPosition(new Vector3(1.5, -0.5, -0.5));
+            puzzle[12].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[5].mesh.translateLocalPosition(new Vector3(-0.5, 0.5, 0.5));
+            puzzle[5].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[5].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[5].mesh.translateLocalPosition(new Vector3(0.5, -0.5, -0.5));
+            puzzle[5].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             break;
         }
         case "gyropA": {
-            puzzle[14].mesh.translateLocalMesh(new Vector3(3 * animationIncrement, 0, 0));
-            puzzle[7].mesh.translateLocalMesh(new Vector3(animationIncrement, 0, 0));
-            puzzle[10].mesh.translateLocalMesh(new Vector3(-3 * animationIncrement, 0, 0));
-            puzzle[3].mesh.translateLocalMesh(new Vector3(-animationIncrement, 0, 0));
-            puzzle[6].mesh.translateLocalMesh(new Vector3(0, animationIncrement, 0));
-            puzzle[15].mesh.translateLocalMesh(new Vector3(0, animationIncrement, 0));
-            puzzle[2].mesh.translateLocalMesh(new Vector3(0, -animationIncrement, 0));
-            puzzle[11].mesh.translateLocalMesh(new Vector3(0, -animationIncrement, 0));
+            puzzle[14].mesh.translateLocalMesh(new Vector3(3 * (animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[7].mesh.translateLocalMesh(new Vector3((animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[10].mesh.translateLocalMesh(new Vector3(-3 * (animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[3].mesh.translateLocalMesh(new Vector3(-(animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[6].mesh.translateLocalMesh(new Vector3(0, (animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[15].mesh.translateLocalMesh(new Vector3(0, (animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[2].mesh.translateLocalMesh(new Vector3(0, -(animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[11].mesh.translateLocalMesh(new Vector3(0, -(animationIncrement * (1 + 2*scaleDistance)), 0));
 
-            puzzle[13].mesh.translateLocalMesh(new Vector3(0, animationIncrement, 0));
-            puzzle[4].mesh.translateLocalMesh(new Vector3(0, animationIncrement, 0));
-            puzzle[0].mesh.translateLocalMesh(new Vector3(0, -animationIncrement, 0));
-            puzzle[9].mesh.translateLocalMesh(new Vector3(0, -animationIncrement, 0));
-            puzzle[1].mesh.translateLocalMesh(new Vector3(-animationIncrement, 0, 0));
-            puzzle[8].mesh.translateLocalMesh(new Vector3(-3 * animationIncrement, 0, 0));
-            puzzle[5].mesh.translateLocalMesh(new Vector3(animationIncrement, 0, 0));
-            puzzle[12].mesh.translateLocalMesh(new Vector3(3 * animationIncrement, 0, 0));
+            puzzle[13].mesh.translateLocalMesh(new Vector3(0, (animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[4].mesh.translateLocalMesh(new Vector3(0, (animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[0].mesh.translateLocalMesh(new Vector3(0, -(animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[9].mesh.translateLocalMesh(new Vector3(0, -(animationIncrement * (1 + 2*scaleDistance)), 0));
+            puzzle[1].mesh.translateLocalMesh(new Vector3(-(animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[8].mesh.translateLocalMesh(new Vector3(-3 * (animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[5].mesh.translateLocalMesh(new Vector3((animationIncrement * (1 + 2*scaleDistance)), 0, 0));
+            puzzle[12].mesh.translateLocalMesh(new Vector3(3 * (animationIncrement * (1 + 2*scaleDistance)), 0, 0));
 
             if (separated) {
                 puzzle[14].mesh.translateLocalMesh(new Vector3(2 * animationIncrement, 0, 0));
@@ -1724,115 +1725,115 @@ function animateTurn(puzzle, stick) {
             break;
         }
         case "gyropB": {
-            puzzle[10].mesh.translateLocalPosition(new Vector3(1.5, -0.5, -0.5));
+            puzzle[10].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[10].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[10].mesh.translateLocalPosition(new Vector3(-1.5, 0.5, 0.5));
+            puzzle[10].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[3].mesh.translateLocalPosition(new Vector3(0.5, -0.5, -0.5));
+            puzzle[3].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[3].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[3].mesh.translateLocalPosition(new Vector3(-0.5, 0.5, 0.5));
+            puzzle[3].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
 
 
-            puzzle[7].mesh.translateLocalPosition(new Vector3(-0.5, 0.5, -0.5));
+            puzzle[7].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[7].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[7].mesh.translateLocalPosition(new Vector3(0.5, -0.5, 0.5));
+            puzzle[7].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[14].mesh.translateLocalPosition(new Vector3(-1.5, 0.5, -0.5));
+            puzzle[14].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[14].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[14].mesh.translateLocalPosition(new Vector3(1.5, -0.5, 0.5));
+            puzzle[14].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
 
 
-            puzzle[12].mesh.translateLocalPosition(new Vector3(-1.5, 0.5, 0.5));
+            puzzle[12].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[12].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[12].mesh.translateLocalPosition(new Vector3(1.5, -0.5, -0.5));
+            puzzle[12].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[5].mesh.translateLocalPosition(new Vector3(-0.5, 0.5, 0.5));
+            puzzle[5].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[5].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[5].mesh.translateLocalPosition(new Vector3(0.5, -0.5, -0.5));
+            puzzle[5].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
 
 
-            puzzle[8].mesh.translateLocalPosition(new Vector3(1.5, -0.5, 0.5));
+            puzzle[8].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[8].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[8].mesh.translateLocalPosition(new Vector3(-1.5, 0.5, -0.5));
+            puzzle[8].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[1].mesh.translateLocalPosition(new Vector3(0.5, -0.5, 0.5));
+            puzzle[1].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[1].localAxisLocalTurn(2*angleIncrement, 0, 0);
-            puzzle[1].mesh.translateLocalPosition(new Vector3(-0.5, 0.5, -0.5));
+            puzzle[1].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             break;
         }
         case "gyropC": {
-            puzzle[15].mesh.translateLocalPosition(new Vector3(-1.5, -0.5, -0.5));
+            puzzle[15].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[15].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[15].mesh.translateLocalPosition(new Vector3(1.5, 0.5, 0.5));
+            puzzle[15].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[6].mesh.translateLocalPosition(new Vector3(-0.5, -0.5, -0.5));
+            puzzle[6].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[6].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[6].mesh.translateLocalPosition(new Vector3(0.5, 0.5, 0.5));
+            puzzle[6].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[14].mesh.translateLocalPosition(new Vector3(-1.5, 0.5, -0.5));
+            puzzle[14].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[14].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[14].mesh.translateLocalPosition(new Vector3(1.5, -0.5, 0.5));
+            puzzle[14].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[7].mesh.translateLocalPosition(new Vector3(-0.5, 0.5, -0.5));
+            puzzle[7].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[7].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[7].mesh.translateLocalPosition(new Vector3(0.5, -0.5, 0.5));
+            puzzle[7].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
 
 
-            puzzle[2].mesh.translateLocalPosition(new Vector3(0.5, 0.5, -0.5));
+            puzzle[2].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[2].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[2].mesh.translateLocalPosition(new Vector3(-0.5, -0.5, 0.5));
+            puzzle[2].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[11].mesh.translateLocalPosition(new Vector3(1.5, 0.5, -0.5));
+            puzzle[11].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[11].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[11].mesh.translateLocalPosition(new Vector3(-1.5, -0.5, 0.5));
+            puzzle[11].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[3].mesh.translateLocalPosition(new Vector3(0.5, -0.5, -0.5));
+            puzzle[3].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[3].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[3].mesh.translateLocalPosition(new Vector3(-0.5, 0.5, 0.5));
+            puzzle[3].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[10].mesh.translateLocalPosition(new Vector3(1.5, -0.5, -0.5));
+            puzzle[10].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             puzzle[10].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[10].mesh.translateLocalPosition(new Vector3(-1.5, 0.5, 0.5));
+            puzzle[10].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
 
 
 
-            puzzle[9].mesh.translateLocalPosition(new Vector3(1.5, 0.5, 0.5));
+            puzzle[9].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[9].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[9].mesh.translateLocalPosition(new Vector3(-1.5, -0.5, -0.5));
+            puzzle[9].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[0].mesh.translateLocalPosition(new Vector3(0.5, 0.5, 0.5));
+            puzzle[0].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[0].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[0].mesh.translateLocalPosition(new Vector3(-0.5, -0.5, -0.5));
+            puzzle[0].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[8].mesh.translateLocalPosition(new Vector3(1.5, -0.5, 0.5));
+            puzzle[8].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[8].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[8].mesh.translateLocalPosition(new Vector3(-1.5, 0.5, -0.5));
+            puzzle[8].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[1].mesh.translateLocalPosition(new Vector3(0.5, -0.5, 0.5));
+            puzzle[1].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[1].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[1].mesh.translateLocalPosition(new Vector3(-0.5, 0.5, -0.5));
+            puzzle[1].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
 
 
-            puzzle[13].mesh.translateLocalPosition(new Vector3(-1.5, -0.5, 0.5));
+            puzzle[13].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[13].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[13].mesh.translateLocalPosition(new Vector3(1.5, 0.5, -0.5));
+            puzzle[13].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[4].mesh.translateLocalPosition(new Vector3(-0.5, -0.5, 0.5));
+            puzzle[4].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[4].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[4].mesh.translateLocalPosition(new Vector3(0.5, 0.5, -0.5));
+            puzzle[4].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[12].mesh.translateLocalPosition(new Vector3(-1.5, 0.5, 0.5));
+            puzzle[12].mesh.translateLocalPosition(new Vector3(-1.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[12].localAxisLocalTurn(0, -angleIncrement, 0);
-            puzzle[12].mesh.translateLocalPosition(new Vector3(1.5, -0.5, -0.5));
+            puzzle[12].mesh.translateLocalPosition(new Vector3(1.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
 
-            puzzle[5].mesh.translateLocalPosition(new Vector3(-0.5, 0.5, 0.5));
+            puzzle[5].mesh.translateLocalPosition(new Vector3(-0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance), 0.5 * (1 + 2*scaleDistance)));
             puzzle[5].localAxisLocalTurn(0, angleIncrement, 0);
-            puzzle[5].mesh.translateLocalPosition(new Vector3(0.5, -0.5, -0.5));
+            puzzle[5].mesh.translateLocalPosition(new Vector3(0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance), -0.5 * (1 + 2*scaleDistance)));
             break;
         }
         default: {
@@ -1901,6 +1902,9 @@ function handleTurning() {
         animateTurn(puzzle, true);
         animationProgress = 0;
         animationIncrement = 0;
+        if (!scrambling && hasBeenSolved) {
+            hasBeenSolved = false; // remove solve message after another turn
+        }
         if (!scrambling && hasBeenScrambled) {
             hasBeenSolved = checkSolved();
         }
@@ -1909,6 +1913,7 @@ function handleTurning() {
             if (hasBeenSolved) {
                 backgroundColor[1] = 255;
                 playAudio(solveSound, false);
+                hasBeenScrambled = false;
             }
         }
         if (!scrambling && !undoMove && !redoMove && (turnType != "gyroB" && turnType != "gyroC" && turnType != "gyropB" && turnType != "gyropC")) {
@@ -2312,6 +2317,7 @@ function renderResetButton() {
             turnList = [];
             turnListIndex = -1;
             separated = false;
+            scaleDistance = 0;
             hasBeenScrambled = false;
             hasBeenSolved = false;
             turnSpeed = speedList[turnSpeedIndex] / 15;
@@ -2578,7 +2584,6 @@ function main() {
             break;
         }
         case SCREENTYPE.PUZZLE: {
-            // console.log(separated);
             // update timers
             settingsButtonTimer += deltaTime;
             resetRotationTimer += deltaTime;
@@ -2609,7 +2614,7 @@ function main() {
                 }
             }
 
-            if (scaleDistance == 0) { // temporary, until conflict resolved
+            // if (scaleDistance == 0) { // temporary, until conflict resolved
                 if (scrambling) {
                     if (scrambleTurnCount > targetScrambleTurnCount) {
                         scrambling = false;
@@ -2624,10 +2629,10 @@ function main() {
                 }
                 // handle turning
                 handleTurning();
-            } else {
-                scrambling = false;
-                scrambleTurnCount = 0;
-            }
+            // } else {
+            //     scrambling = false;
+            //     scrambleTurnCount = 0;
+            // }
 
             // reset rotation
             if (checkKeyBind(keyBinds.resetOrientation) && resetRotationTimer > 30) {
