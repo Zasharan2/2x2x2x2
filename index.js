@@ -15,6 +15,8 @@ function updateCanvasSize() {
 var keyBinds = {
     separate: [" "],
     resetOrientation: ["c"],
+    scramble: ["s"],
+    reset: ["S"],
     lxTurn: ["l", "x"],
     lyTurn: ["l", "y"],
     lzTurn: ["l", "z"],
@@ -105,6 +107,7 @@ var orientSound = new Audio("sounds/orient.mp3");
 var orient2Sound = new Audio("sounds/orient2.mp3");
 var gyroSound = new Audio("sounds/gyro2.mp3");
 var solveSound = new Audio("sounds/solve.wav");
+var scrambleSound = new Audio("sounds/scramble.mp3");
 
 var vineboomSound = new Audio("sounds/vineboom.mp3");
 var boowompSound = new Audio("sounds/boowomp.mp3");
@@ -460,7 +463,7 @@ class Camera {
     }
 }
 
-const FOV = Math.PI / 2; // 90 degrees
+var FOV = Math.PI / 2; // 90 degrees
 var camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1));
 var lightDir = new Vector3(0, 0, 1);
 
@@ -767,9 +770,13 @@ function stickSeparation(puzzle) {
 }
 
 var scaleDistance = 0;
+var scaleDistanceMax = 0.35;
 function scaleCuboids(puzzle, factor) {
     if (scaleDistance + factor <= 0) {
         factor = -scaleDistance;
+    }
+    if (scaleDistance + factor >= scaleDistanceMax) {
+        factor = scaleDistanceMax - scaleDistance;
     }
 
     scaleDistance += factor;
@@ -2207,20 +2214,24 @@ function handleTurning() {
 
     if (animating == ANIMATION.TURN && animationProgress == 0) {
         if (soundEffectsOn == 1) {
-            if (turnType == "gyroA" || turnType == "gyropA") {
-                playAudio(gyroSound, !scrambling);
-            } else if (turnType != "gyroB" && turnType != "gyroC" && turnType != "gyropB" && turnType != "gyropC") {
-                if (turnType == "x" || turnType == "xp" || turnType == "y2" || turnType == "z2") {
-                    playAudio(orient2Sound, true);
-                } else {
-                    playAudio(turnSound, !scrambling);
+            if (!scrambling) {
+                if (turnType == "gyroA" || turnType == "gyropA") {
+                    playAudio(gyroSound, true);
+                } else if (turnType != "gyroB" && turnType != "gyroC" && turnType != "gyropB" && turnType != "gyropC") {
+                    if (turnType == "x" || turnType == "xp" || turnType == "y2" || turnType == "z2") {
+                        playAudio(orient2Sound, true);
+                    } else {
+                        playAudio(turnSound, true);
+                    }
                 }
             }
         } else if (soundEffectsOn == 2) {
-            if (turnType == "gyroA" || turnType == "gyropA") {
-                playAudio(brainfartSound, true);
-            } else if (turnType != "gyroB" && turnType != "gyroC" && turnType != "gyropB" && turnType != "gyropC") {
-                playAudio(vineboomSound, true);
+            if (!scrambling) {
+                if (turnType == "gyroA" || turnType == "gyropA") {
+                    playAudio(brainfartSound, true);
+                } else if (turnType != "gyroB" && turnType != "gyroC" && turnType != "gyropB" && turnType != "gyropC") {
+                    playAudio(vineboomSound, true);
+                }
             }
         }
     }
@@ -2269,6 +2280,22 @@ function renderSettingsButton() {
     ctx.fill();
 }
 
+function toggleScramblePuzzle() {
+    scrambling = true;
+    turnList = [];
+    turnListIndex = -1;
+    scrambleTurn = "";
+    scrambleTurnCount = 0;
+    turnSpeed = 1;
+    if (soundEffectsOn == 1) {
+        var temp = scrambleSound.cloneNode(true);
+        temp.playbackRate = Math.min(16, 50 / targetScrambleTurnCount);
+        temp.play();
+    } else if (soundEffectsOn == 2) {
+        playAudio(fartSound, false);
+    }
+}
+
 var scrambling = false;
 var scrambleTurn = "";
 var scrambleTurnCount = 0;
@@ -2280,17 +2307,7 @@ function renderScrambleButton() {
     if (checkBoxHover(100, 30, 170, 50)) {
         ctx.fillStyle = "#80808080";
         if (mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
-            scrambling = true;
-            turnList = [];
-            turnListIndex = -1;
-            scrambleTurn = "";
-            scrambleTurnCount = 0;
-            turnSpeed = 1;
-            if (soundEffectsOn == 1) {
-                playAudio(orientSound, false);
-            } else if (soundEffectsOn == 2) {
-                playAudio(fartSound, false);
-            }
+            toggleScramblePuzzle();
             settingsButtonTimer = 0;
         }
     } else {
@@ -2306,30 +2323,34 @@ function renderScrambleButton() {
     ctx.fillText("Scramble", 110, 64);
 }
 
+function toggleResetPuzzle() {
+    clearTimeout(recentTimeout);
+    scrambling = false;
+    turnList = [];
+    turnListIndex = -1;
+    separated = false;
+    scaleDistance = 0;
+    hasBeenScrambled = false;
+    hasBeenSolved = false;
+    turnSpeed = speedList[turnSpeedIndex] / 15;
+    animationProgress = 0;
+    animating = ANIMATION.NONE;
+    puzzle = create2to4(new Vector3(0, 0, 2));
+    referenceAxisMesh.resetEuler();
+    if (soundEffectsOn == 1) {
+        playAudio(orientSound, false);
+    } else if (soundEffectsOn == 2) {
+        playAudio(fartSound, false);
+    }
+}
+
 function renderResetButton() {
     // box
     ctx.beginPath();
     if (checkBoxHover(290, 30, 110, 50)) {
         ctx.fillStyle = "#80808080";
         if (mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
-            clearTimeout(recentTimeout);
-            scrambling = false;
-            turnList = [];
-            turnListIndex = -1;
-            separated = false;
-            scaleDistance = 0;
-            hasBeenScrambled = false;
-            hasBeenSolved = false;
-            turnSpeed = speedList[turnSpeedIndex] / 15;
-            animationProgress = 0;
-            animating = ANIMATION.NONE;
-            puzzle = create2to4(new Vector3(0, 0, 2));
-            referenceAxisMesh.resetEuler();
-            if (soundEffectsOn == 1) {
-                playAudio(orientSound, false);
-            } else if (soundEffectsOn == 2) {
-                playAudio(fartSound, false);
-            }
+            toggleResetPuzzle();
             settingsButtonTimer = 0;
         }
     } else {
@@ -2345,6 +2366,10 @@ function renderResetButton() {
 }
 
 function renderSettingsScreenButtons() {
+    var settingsScreenButtonHeight = 90;
+
+    renderPasteAllSettings(settingsScreenButtonHeight); settingsScreenButtonHeight += 120;
+
     // sfx button
     ctx.beginPath();
     ctx.font = "40px Courier New";
@@ -2359,7 +2384,7 @@ function renderSettingsScreenButtons() {
         ctx.fillStyle = "#00ff00ff";
         message = "SFX: Goofy";
     }
-    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), 90 + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         soundEffectsOn++; soundEffectsOn %= 3;
         if (soundEffectsOn == 1) {
             playAudio(orientSound, false);
@@ -2368,14 +2393,16 @@ function renderSettingsScreenButtons() {
         }
         settingsButtonTimer = 0;
     }
-    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), 120 + settingsScroll);
+    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + 30 + settingsScroll);
+
+    settingsScreenButtonHeight += 120;
 
     // turn speed button
     ctx.beginPath();
     ctx.font = "40px Courier New";
     ctx.fillStyle = "#ffffffff";
     message = `Turn Speed: ${15*turnSpeed}`;
-    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), 150 + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         turnSpeedIndex++; turnSpeedIndex %= speedList.length;
         turnSpeed = speedList[turnSpeedIndex] / 15;
         settingsButtonTimer = 0;
@@ -2385,7 +2412,9 @@ function renderSettingsScreenButtons() {
             playAudio(fartSound, false);
         }
     }
-    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), 180 + settingsScroll);
+    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + 30 + settingsScroll);
+
+    settingsScreenButtonHeight += 60;
 
     // instant gyros button
     ctx.beginPath();
@@ -2398,7 +2427,7 @@ function renderSettingsScreenButtons() {
         ctx.fillStyle = "#ff0000ff";
         message = "Instant Gyros: OFF";
     }
-    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), 210 + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         instantGyros = !instantGyros;
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
@@ -2407,7 +2436,9 @@ function renderSettingsScreenButtons() {
             playAudio(fartSound, false);
         }
     }
-    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), 240 + settingsScroll);
+    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + 30 + settingsScroll);
+
+    settingsScreenButtonHeight += 60;
 
     // scramble count button
     ctx.beginPath();
@@ -2415,7 +2446,7 @@ function renderSettingsScreenButtons() {
     message = "";
     ctx.fillStyle = "#ffffffff";
     message = `Scramble Count: ${targetScrambleTurnCount + 1}`;
-    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), 270 + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         mouseDown = false;
         targetScrambleTurnCount = Number(prompt(`Type the number of turns to make per scramble:`)) - 1;
         settingsButtonTimer = 0;
@@ -2425,51 +2456,85 @@ function renderSettingsScreenButtons() {
             playAudio(fartSound, false);
         }
     }
-    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), 300 + settingsScroll);
+    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + 30 + settingsScroll);
 
-    var keyBindHeight = 330;
+    settingsScreenButtonHeight += 120;
 
-    renderPasteKeybind(keyBindHeight); keyBindHeight += 60;
+    // FOV button
+    ctx.beginPath();
+    ctx.font = "40px Courier New";
+    message = "";
+    ctx.fillStyle = "#ffffffff";
+    message = `FOV: ${Math.round((FOV) * (180 / Math.PI))}`;
+    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+        mouseDown = false;
+        FOV = Number(prompt(`Type the desired FOV:`)) * (Math.PI / 180);
+        settingsButtonTimer = 0;
+        if (soundEffectsOn == 1) {
+            playAudio(orientSound, false);
+        } else if (soundEffectsOn == 2) {
+            playAudio(fartSound, false);
+        }
+    }
+    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + 30 + settingsScroll);
 
-    keyBinds.separate = renderKeybind(keyBinds.separate, "Separate", keyBindHeight); keyBindHeight += 60;
-    keyBinds.resetOrientation = renderKeybind(keyBinds.resetOrientation, "Reorient", keyBindHeight); keyBindHeight += 60;
-    keyBinds.lxTurn = renderKeybind(keyBinds.lxTurn, "Lx", keyBindHeight); keyBindHeight += 60;
-    keyBinds.lxPrimeTurn = renderKeybind(keyBinds.lxPrimeTurn, "Lx'", keyBindHeight); keyBindHeight += 60;
-    keyBinds.lyTurn = renderKeybind(keyBinds.lyTurn, "Ly", keyBindHeight); keyBindHeight += 60;
-    keyBinds.lyPrimeTurn = renderKeybind(keyBinds.lyPrimeTurn, "Ly'", keyBindHeight); keyBindHeight += 60;
-    keyBinds.lzTurn = renderKeybind(keyBinds.lzTurn, "Lz", keyBindHeight); keyBindHeight += 60;
-    keyBinds.lzPrimeTurn = renderKeybind(keyBinds.lzPrimeTurn, "Lz'", keyBindHeight); keyBindHeight += 60;
-    keyBinds.rxTurn = renderKeybind(keyBinds.rxTurn, "Rx", keyBindHeight); keyBindHeight += 60;
-    keyBinds.rxPrimeTurn = renderKeybind(keyBinds.rxPrimeTurn, "Rx'", keyBindHeight); keyBindHeight += 60;
-    keyBinds.ryTurn = renderKeybind(keyBinds.ryTurn, "Ry", keyBindHeight); keyBindHeight += 60;
-    keyBinds.ryPrimeTurn = renderKeybind(keyBinds.ryPrimeTurn, "Ry'", keyBindHeight); keyBindHeight += 60;
-    keyBinds.rzTurn = renderKeybind(keyBinds.rzTurn, "Rz", keyBindHeight); keyBindHeight += 60;
-    keyBinds.rzPrimeTurn = renderKeybind(keyBinds.rzPrimeTurn, "Rz'", keyBindHeight); keyBindHeight += 60;
-    keyBinds.ixTurn = renderKeybind(keyBinds.ixTurn, "Ix", keyBindHeight); keyBindHeight += 60;
-    keyBinds.ixPrimeTurn = renderKeybind(keyBinds.ixPrimeTurn, "Ix'", keyBindHeight); keyBindHeight += 60;
-    keyBinds.oxTurn = renderKeybind(keyBinds.oxTurn, "Ox", keyBindHeight); keyBindHeight += 60;
-    keyBinds.oxPrimeTurn = renderKeybind(keyBinds.oxPrimeTurn, "Ox'", keyBindHeight); keyBindHeight += 60;
-    keyBinds.u2Turn = renderKeybind(keyBinds.u2Turn, "U2", keyBindHeight); keyBindHeight += 60;
-    keyBinds.f2Turn = renderKeybind(keyBinds.f2Turn, "F2", keyBindHeight); keyBindHeight += 60;
-    keyBinds.d2Turn = renderKeybind(keyBinds.d2Turn, "D2", keyBindHeight); keyBindHeight += 60;
-    keyBinds.b2Turn = renderKeybind(keyBinds.b2Turn, "B2", keyBindHeight); keyBindHeight += 60;
-    keyBinds.xTurn = renderKeybind(keyBinds.xTurn, "x", keyBindHeight); keyBindHeight += 60;
-    keyBinds.xPrimeTurn = renderKeybind(keyBinds.xPrimeTurn, "x'", keyBindHeight); keyBindHeight += 60;
-    keyBinds.y2Turn = renderKeybind(keyBinds.y2Turn, "y2", keyBindHeight); keyBindHeight += 60;
-    keyBinds.z2Turn = renderKeybind(keyBinds.z2Turn, "z2", keyBindHeight); keyBindHeight += 60;
-    keyBinds.gyro = renderKeybind(keyBinds.gyro, "Gyro", keyBindHeight); keyBindHeight += 60;
-    keyBinds.gyroPrime = renderKeybind(keyBinds.gyroPrime, "Gyro'", keyBindHeight); keyBindHeight += 60;
+    settingsScreenButtonHeight += 120;
 
-    renderPasteColors(keyBindHeight); keyBindHeight += 60;
+    renderPasteKeybind(settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
 
-    renderColorSchemeButton(colorScheme[0], "White", keyBindHeight); keyBindHeight += 60;
-    renderColorSchemeButton(colorScheme[1], "Yellow", keyBindHeight); keyBindHeight += 60;
-    renderColorSchemeButton(colorScheme[2], "Red", keyBindHeight); keyBindHeight += 60;
-    renderColorSchemeButton(colorScheme[3], "Orange", keyBindHeight); keyBindHeight += 60;
-    renderColorSchemeButton(colorScheme[4], "Green", keyBindHeight); keyBindHeight += 60;
-    renderColorSchemeButton(colorScheme[5], "Blue", keyBindHeight); keyBindHeight += 60;
-    renderColorSchemeButton(colorScheme[6], "Pink", keyBindHeight); keyBindHeight += 60;
-    renderColorSchemeButton(colorScheme[7], "Purple", keyBindHeight); keyBindHeight += 60;
+    keyBinds.separate = renderKeybind(keyBinds.separate, "Separate", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.resetOrientation = renderKeybind(keyBinds.resetOrientation, "Reorient", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.scramble = renderKeybind(keyBinds.scramble, "Scramble", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.reset = renderKeybind(keyBinds.reset, "Reset", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.lxTurn = renderKeybind(keyBinds.lxTurn, "Lx", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.lxPrimeTurn = renderKeybind(keyBinds.lxPrimeTurn, "Lx'", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.lyTurn = renderKeybind(keyBinds.lyTurn, "Ly", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.lyPrimeTurn = renderKeybind(keyBinds.lyPrimeTurn, "Ly'", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.lzTurn = renderKeybind(keyBinds.lzTurn, "Lz", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.lzPrimeTurn = renderKeybind(keyBinds.lzPrimeTurn, "Lz'", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.rxTurn = renderKeybind(keyBinds.rxTurn, "Rx", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.rxPrimeTurn = renderKeybind(keyBinds.rxPrimeTurn, "Rx'", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.ryTurn = renderKeybind(keyBinds.ryTurn, "Ry", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.ryPrimeTurn = renderKeybind(keyBinds.ryPrimeTurn, "Ry'", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.rzTurn = renderKeybind(keyBinds.rzTurn, "Rz", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.rzPrimeTurn = renderKeybind(keyBinds.rzPrimeTurn, "Rz'", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.ixTurn = renderKeybind(keyBinds.ixTurn, "Ix", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.ixPrimeTurn = renderKeybind(keyBinds.ixPrimeTurn, "Ix'", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.oxTurn = renderKeybind(keyBinds.oxTurn, "Ox", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.oxPrimeTurn = renderKeybind(keyBinds.oxPrimeTurn, "Ox'", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.u2Turn = renderKeybind(keyBinds.u2Turn, "U2", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.f2Turn = renderKeybind(keyBinds.f2Turn, "F2", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.d2Turn = renderKeybind(keyBinds.d2Turn, "D2", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.b2Turn = renderKeybind(keyBinds.b2Turn, "B2", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.xTurn = renderKeybind(keyBinds.xTurn, "x", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.xPrimeTurn = renderKeybind(keyBinds.xPrimeTurn, "x'", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.y2Turn = renderKeybind(keyBinds.y2Turn, "y2", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.z2Turn = renderKeybind(keyBinds.z2Turn, "z2", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.gyro = renderKeybind(keyBinds.gyro, "Gyro", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.gyroPrime = renderKeybind(keyBinds.gyroPrime, "Gyro'", settingsScreenButtonHeight); settingsScreenButtonHeight += 120;
+
+    renderPasteColors(settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+
+    renderColorSchemeButton(colorScheme[0], "White", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    renderColorSchemeButton(colorScheme[1], "Yellow", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    renderColorSchemeButton(colorScheme[2], "Red", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    renderColorSchemeButton(colorScheme[3], "Orange", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    renderColorSchemeButton(colorScheme[4], "Green", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    renderColorSchemeButton(colorScheme[5], "Blue", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    renderColorSchemeButton(colorScheme[6], "Pink", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    renderColorSchemeButton(colorScheme[7], "Purple", settingsScreenButtonHeight); settingsScreenButtonHeight += 120;
+
+    // notes
+    writeNote("Extra Notes", settingsScreenButtonHeight); settingsScreenButtonHeight += 120;
+    writeNote("Rotate Puzzle: Click & Drag", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    writeNote("Explode Pieces: Scroll", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+}
+
+function writeNote(note, y) {
+    ctx.beginPath();
+    ctx.font = "40px Courier New";
+    ctx.fillStyle = "#ffff00ff";
+    ctx.fillText(note, (c.width / 2) - (ctx.measureText(note).width / 2), y + 30 + settingsScroll);
 }
 
 function renderColorSchemeButton(color, colorName, y) {
@@ -2564,6 +2629,34 @@ function renderPasteKeybind(y) {
     }
 }
 
+function renderPasteAllSettings(y) {
+    ctx.beginPath();
+    ctx.font = "40px Courier New";
+    ctx.fillStyle = "#ffffffff";
+    message = `Copy/Paste All Settings`;
+    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), y + 30 + settingsScroll);
+    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), y + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+        mouseDown = false;
+        var res = prompt(`If you have a settings set, you may paste it below. You may also copy your current settings set: ${JSON.stringify({sfx: soundEffectsOn, turnSpeed: turnSpeedIndex, instantGyros: instantGyros, scrambleCount: targetScrambleTurnCount, keyBinds: keyBinds, colorScheme: colorScheme})}`);
+        if (res != null && res != "") {
+            res = JSON.parse(res);
+            soundEffectsOn = res.sfx;
+            turnSpeedIndex = res.turnSpeed;
+            instantGyros = res.instantGyros;
+            targetScrambleTurnCount = res.scrambleCount;
+            keyBinds = res.keyBinds;
+            colorScheme = res.colorScheme;
+            updateColorScheme(colorScheme);
+        }
+        settingsButtonTimer = 0;
+        if (soundEffectsOn == 1) {
+            playAudio(orientSound, false);
+        } else if (soundEffectsOn == 2) {
+            playAudio(fartSound, false);
+        }
+    }
+}
+
 var resetRotationTimer = 0;
 
 const SCREENTYPE = {
@@ -2601,6 +2694,16 @@ function main() {
             ctx.fillStyle = `rgba(${backgroundColor[0]}, ${backgroundColor[1]}, ${backgroundColor[2]}, 1)`;
             ctx.fillRect(0, 0, c.width, c.height);
 
+            // reset check
+            if (checkKeyBind(keyBinds.reset)) {
+                toggleResetPuzzle();
+            }
+
+            // scramble check
+            if (checkKeyBind(keyBinds.scramble) && !scrambling) {
+                toggleScramblePuzzle();
+            }
+
             // separate when key press
             if (!scrambling) {
                 if (animationProgress > 0.99 && animating == ANIMATION.SEPARATE) {
@@ -2614,25 +2717,20 @@ function main() {
                 }
             }
 
-            // if (scaleDistance == 0) { // temporary, until conflict resolved
-                if (scrambling) {
-                    if (scrambleTurnCount > targetScrambleTurnCount) {
-                        scrambling = false;
-                        turnList = [];
-                        turnListIndex = -1;
-                        hasBeenSolved = false;
-                        hasBeenScrambled = true;
-                        turnSpeed = speedList[turnSpeedIndex] / 15;
-                    } else {
-                        scrambleTurn = ['lx','ly','lz','rx','ry','rz','ix','ox','lxp','lyp','lzp','rxp','ryp','rzp','ixp','oxp','u2','f2','d2','b2','gyroA','gyropA'][Math.floor(Math.random() * 22)];
-                    }
+            if (scrambling) {
+                if (scrambleTurnCount > targetScrambleTurnCount) {
+                    scrambling = false;
+                    turnList = [];
+                    turnListIndex = -1;
+                    hasBeenSolved = false;
+                    hasBeenScrambled = true;
+                    turnSpeed = speedList[turnSpeedIndex] / 15;
+                } else {
+                    scrambleTurn = ['lx','ly','lz','rx','ry','rz','ix','ox','lxp','lyp','lzp','rxp','ryp','rzp','ixp','oxp','u2','f2','d2','b2','gyroA','gyropA'][Math.floor(Math.random() * 22)];
                 }
-                // handle turning
-                handleTurning();
-            // } else {
-            //     scrambling = false;
-            //     scrambleTurnCount = 0;
-            // }
+            }
+            // handle turning
+            handleTurning();
 
             // reset rotation
             if (checkKeyBind(keyBinds.resetOrientation) && resetRotationTimer > 30) {
@@ -2679,11 +2777,11 @@ function main() {
             // settings button
             renderSettingsButton();
 
-            // scramble button
-            renderScrambleButton();
+            // // scramble button
+            // renderScrambleButton();
 
-            // reset button
-            renderResetButton();
+            // // reset button
+            // renderResetButton();
 
             // render solved
             if (hasBeenSolved) {
