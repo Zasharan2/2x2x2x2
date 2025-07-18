@@ -4,7 +4,6 @@
 var c = document.getElementById("mainCanvas");
 var ctx = c.getContext("2d");
 
-updateCanvasSize();
 window.addEventListener("resize", (ev) => updateCanvasSize());
 
 function updateCanvasSize() {
@@ -463,7 +462,7 @@ class Camera {
     }
 }
 
-var FOV = Math.PI / 2; // 90 degrees
+var FOV = Math.PI / 4; // 90 degrees
 var camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1));
 var lightDir = new Vector3(0, 0, 1);
 
@@ -902,11 +901,11 @@ function updatePuzzleDistance() {
     }
 }
 
-var puzzleSolverDistance = 2;
+var puzzleSolverDistance = 5;
 var prevPuzzleSolverDistance = puzzleSolverDistance;
 var puzzle = create2to4(new Vector3(0, 0, puzzleSolverDistance));
 var referenceAxisMesh = createReferenceAxisMesh(0.25, 0.02);
-referenceAxisMesh.translateAll(new Vector3(-3, 2, 0));
+// referenceAxisMesh.translateAll(new Vector3(-3, 2, 0));
 
 function getObjectMeshes(puzzle) {
     var meshList = [];
@@ -2284,6 +2283,7 @@ function checkBoxHover(x, y, w, h) {
 var settingsScroll = 0;
 var settingsButtonTimer = 0;
 var settingsButtonDelay = 30;
+var settingsButtonHoveringClickless = false;
 function renderSettingsButton() {
     // three bars
     ctx.beginPath();
@@ -2297,7 +2297,7 @@ function renderSettingsButton() {
     ctx.beginPath();
     if (checkBoxHover(30, 30, 50, 50)) {
         ctx.fillStyle = "#80808080";
-        if (mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+        if (settingsButtonHoveringClickless && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
             if (screen == SCREENTYPE.PUZZLE) {
                 screen = SCREENTYPE.PUZZLE_TO_SETTINGS;
             } else if (screen == SCREENTYPE.SETTINGS) {
@@ -2315,8 +2315,11 @@ function renderSettingsButton() {
     }
     ctx.roundRect(30, 30, 50, 50, 8);
     ctx.fill();
+
+    settingsButtonHoveringClickless = checkBoxHover(30, 30, 50, 50) && !mouseDown;
 }
 
+var helpButtonHoveringClickless = false;
 function renderHelpButton() {
     // question mark
     ctx.beginPath();
@@ -2328,7 +2331,7 @@ function renderHelpButton() {
     ctx.beginPath();
     if (checkBoxHover(100, 30, 50, 50)) {
         ctx.fillStyle = "#80808080";
-        if (mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+        if (helpButtonHoveringClickless && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
             if (screen == SCREENTYPE.PUZZLE) {
                 screen = SCREENTYPE.PUZZLE_TO_HELPINFO;
             } else if (screen == SCREENTYPE.HELPINFO) {
@@ -2346,6 +2349,8 @@ function renderHelpButton() {
     }
     ctx.roundRect(100, 30, 50, 50, 8);
     ctx.fill();
+
+    helpButtonHoveringClickless = checkBoxHover(100, 30, 50, 50) && !mouseDown;
 }
 
 function toggleScramblePuzzle() {
@@ -2565,7 +2570,7 @@ function renderSettingsScreenButtons() {
         }
     }
     ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + 30 + settingsScroll);
-    
+
     settingsScreenButtonHeight += 60;
 
     // cam dist button
@@ -2640,7 +2645,7 @@ function renderHelpScreenText() {
     // notes
     writeNote("Help/Info", helpScreenTextHeight, 40); helpScreenTextHeight += 120;
     writeNote("Overview", helpScreenTextHeight, 40); helpScreenTextHeight += 60;
-    writeNote("A virtual simulation of the physical 2x2x2x2 puzzle.\nAlso commonly called the 2^4.", helpScreenTextHeight, 20); helpScreenTextHeight += 120;
+    writeNote("A virtual simulation of the physical 2x2x2x2 puzzle.\nAlso commonly called the 2^4.\n\nThe original physical puzzle was\ncreated by Melinda Green.", helpScreenTextHeight, 20); helpScreenTextHeight += 160;
     writeNote("Controls", helpScreenTextHeight, 40); helpScreenTextHeight += 60;
     writeNote("Orienting does not change what turns will do.\nUse the x, x', y2, z2 controls, and reference axis,\nto make sense of a move in a particular orientation.", helpScreenTextHeight, 20); helpScreenTextHeight += 100;
     writeNote("Rotate Puzzle: Click & Drag", helpScreenTextHeight, 20); helpScreenTextHeight += 60;
@@ -2777,6 +2782,15 @@ function renderPasteAllSettings(y) {
     }
 }
 
+function renderReferenceAxis() {
+    ctx.translate(-(c.width / 2) + 60, (c.height / 2) - 60);
+    var prevFOV = FOV;
+    FOV = Math.PI / 2;
+    renderMeshes([referenceAxisMesh]);
+    FOV = prevFOV;
+    ctx.translate((c.width / 2) - 60, -(c.height / 2) + 60);
+}
+
 var resetRotationTimer = 0;
 
 const SCREENTYPE = {
@@ -2880,7 +2894,10 @@ function main() {
             }
 
             // render puzzle
-            renderMeshes([...getObjectMeshes(puzzle), referenceAxisMesh]);
+            renderMeshes(getObjectMeshes(puzzle));
+
+            // render reference axis
+            renderReferenceAxis();
 
             // animation
             switch (animating) {
@@ -3019,6 +3036,7 @@ function loop() {
 }
 
 function init() {
+    updateCanvasSize();
     window.requestAnimationFrame(loop);
 }
 window.requestAnimationFrame(init);
