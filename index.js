@@ -2718,7 +2718,7 @@ function renderPasteColors(y) {
     if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), y + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         mouseDown = false;
         var newColors;
-        newColors = prompt(`If you have a color scheme, you may paste it below. You may also copy your current color scheme: ${JSON.stringify(colorScheme)}`);
+        newColors = prompt(`If you have a color scheme, you may paste it below. As an example, a colorblind color set is provided: ["#ffffffff","#4a4a4aff","#d55e00ff","#e69f00ff","#cc79a7ff","#56b4e9ff","#f0e442ff","#0072b2ff"].`, JSON.stringify(colorScheme));
         if (newColors != null && newColors != "") {
             newColors = JSON.parse(newColors);
             updateColorScheme(newColors);
@@ -2740,7 +2740,7 @@ function renderPasteKeybind(y) {
     ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), y + 30 + settingsScroll);
     if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), y + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         mouseDown = false;
-        userKeyBind = prompt(`If you have a keybind set, you may paste it below. You may also copy your current keybind set: ${JSON.stringify(keyBinds)}`);
+        userKeyBind = prompt(`If you have a keybind set, you may paste it below.`, JSON.stringify(keyBinds));
         if (userKeyBind != null && userKeyBind != "") {
             userKeyBind = JSON.parse(userKeyBind);
             keyBinds = userKeyBind;
@@ -2762,7 +2762,7 @@ function renderPasteAllSettings(y) {
     ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), y + 30 + settingsScroll);
     if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), y + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         mouseDown = false;
-        var res = prompt(`If you have a settings set, you may paste it below. You may also copy your current settings set: ${JSON.stringify({sfx: soundEffectsOn, turnSpeed: turnSpeedIndex, instantGyros: instantGyros, scrambleCount: targetScrambleTurnCount, keyBinds: keyBinds, colorScheme: colorScheme})}`);
+        var res = prompt(`If you have a settings set, you may paste it below.`, JSON.stringify({sfx: soundEffectsOn, turnSpeed: turnSpeedIndex, instantGyros: instantGyros, scrambleCount: targetScrambleTurnCount, keyBinds: keyBinds, colorScheme: colorScheme}));
         if (res != null && res != "") {
             res = JSON.parse(res);
             soundEffectsOn = res.sfx;
