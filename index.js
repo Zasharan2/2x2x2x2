@@ -848,12 +848,12 @@ function createReferenceAxisMesh(axisLength, axisWidth) {
         obj.addTriangle(new Triangle(new Vector3(axisLength, 0, axisWidth), new Vector3(axisLength, -axisWidth, axisWidth), new Vector3(axisLength, -axisWidth, 0), null, 0, col));
     }
 
-    generateXAxis(obj, "#0000ffff");
+    generateXAxis(obj, "#00ffffff");
 
     // turn x to z
     obj.rotateEulerLocal(0, -Math.PI / 2, 0);
 
-    generateXAxis(obj, "#00ff00ff");
+    generateXAxis(obj, "#008000ff");
 
     // turn x to y
     obj.rotateEulerLocal(0, 0, -Math.PI / 2);
@@ -883,7 +883,7 @@ function createReferenceAxisMesh(axisLength, axisWidth) {
             const c = a + (segments + 1);
             const d = c + 1;
 
-            obj.addTriangle(new Triangle(points[a], points[c], points[b], null, 0, "#ffffff20"));
+            obj.addTriangle(new Triangle(points[a], points[c], points[b], null, 0, "#ffffff40"));
         }
     }
 
