@@ -95,10 +95,10 @@ document.addEventListener("wheel", function(event) {
             }
             break;
         }
-        case SCREENTYPE.SETTINGS: {
+        case SCREENTYPE.SETTINGS:
+        case SCREENTYPE.HELPINFO:
             settingsScroll -= event.deltaY * deltaTime / 3;
             break;
-        }
     }
 });
 
@@ -534,23 +534,30 @@ class Cuboid {
             returnList.push([sum.unit(), this.mesh.triangleList[3 * i].fill]); // add to returnList [vector pointing in direction of corner, fill color]
         }
         return returnList;
-        // var points = [...this.mesh.triangleList[i].points];
+    }
 
-        // triangleListCopy.sort(function (a, b) {
-        //     if (a.x > b.x) return -1;
-        //     if (a.x < b.x) return 1;
+    setColor(direction, color) {
+        for (var i = 0; i < (this.mesh.triangleList.length / 3); i++) {
+            var sum = new Vector3(0, 0, 0);
+            for (var j = 0; j < 3; j++) {
+                var line1 = this.mesh.triangleList[(3 * i) + j].points[1].sub(this.mesh.triangleList[(3 * i) + j].points[0]);
+                var line2 = this.mesh.triangleList[(3 * i) + j].points[2].sub(this.mesh.triangleList[(3 * i) + j].points[0]);
+                var cross = line1.cross(line2).unit();
+                sum = sum.add(cross);
+            }
+            sum = sum.unit();
 
-        //     if (a.y > b.y) return -1;
-        //     if (a.y < b.y) return 1;
+            // unrotate it
+            var vec = new Vector3(sum.x * this.mesh.localAxis[0].x + sum.y * this.mesh.localAxis[0].y + sum.z * this.mesh.localAxis[0].z,
+                                  sum.x * this.mesh.localAxis[1].x + sum.y * this.mesh.localAxis[1].y + sum.z * this.mesh.localAxis[1].z,
+                                  sum.x * this.mesh.localAxis[2].x + sum.y * this.mesh.localAxis[2].y + sum.z * this.mesh.localAxis[2].z);
 
-        //     if (a.z > b.z) return -1;
-        //     if (a.z < b.z) return 1;
-
-        //     return 0;
-        // });
-
-        // // colors 1, 2, 3, 4
-        // return [this.mesh.triangleList[0].fill, this.mesh.triangleList[3].fill, this.mesh.triangleList[6].fill, this.mesh.triangleList[9].fill]
+            if (roundTo(vec.x, 10) == roundTo(direction.unit().x, 10) && roundTo(vec.y, 10) == roundTo(direction.unit().y, 10) && roundTo(vec.z, 10) == roundTo(direction.unit().z, 10)) {
+                this.mesh.triangleList[3 * i].fill = color;
+                this.mesh.triangleList[(3 * i) + 1].fill = color;
+                this.mesh.triangleList[(3 * i) + 2].fill = color;
+            }
+        }
     }
 }
 
@@ -573,6 +580,25 @@ function getCuboidColorFromDirection(cuboidIndex, direction) {
         }
     }
     return -1;
+}
+
+function setCuboidColorFromDirection(cuboidIndex, direction, color) {
+    puzzle[cuboidIndex].setColor(direction, color);
+}
+
+function setCuboidAllColors(cuboidIndex, parity, colors) {
+    // front top to bottom, then up, then last
+    if (parity == 0) {
+        setCuboidColorFromDirection(cuboidIndex, new Vector3(1, -1, 1), colorScheme[colors[2]]); // up top right
+        setCuboidColorFromDirection(cuboidIndex, new Vector3(-1, -1, -1), colorScheme[colors[0]]); // front top left
+        setCuboidColorFromDirection(cuboidIndex, new Vector3(1, 1, -1), colorScheme[colors[1]]); // front bottom right
+        setCuboidColorFromDirection(cuboidIndex, new Vector3(-1, 1, 1), colorScheme[colors[3]]); // last
+    } else if (parity == 1) {
+        setCuboidColorFromDirection(cuboidIndex, new Vector3(1, 1, 1), colorScheme[colors[3]]); // last
+        setCuboidColorFromDirection(cuboidIndex, new Vector3(-1, 1, -1), colorScheme[colors[1]]); // front bottom left
+        setCuboidColorFromDirection(cuboidIndex, new Vector3(1, -1, -1), colorScheme[colors[0]]); // front top right
+        setCuboidColorFromDirection(cuboidIndex, new Vector3(-1, -1, 1), colorScheme[colors[2]]); // up top left
+    }
 }
 
 var prevHasBeenSolved = false;
@@ -867,7 +893,18 @@ function createReferenceAxisMesh(axisLength, axisWidth) {
     return obj;
 }
 
-var puzzle = create2to4(new Vector3(0, 0, 2));
+function updatePuzzleDistance() {
+    if (puzzleSolverDistance != prevPuzzleSolverDistance) {
+        for (var i = 0; i < 16; i++) {
+            puzzle[i].mesh.translateAll(new Vector3(0, 0, puzzleSolverDistance - prevPuzzleSolverDistance));
+        }
+        prevPuzzleSolverDistance = puzzleSolverDistance;
+    }
+}
+
+var puzzleSolverDistance = 2;
+var prevPuzzleSolverDistance = puzzleSolverDistance;
+var puzzle = create2to4(new Vector3(0, 0, puzzleSolverDistance));
 var referenceAxisMesh = createReferenceAxisMesh(0.25, 0.02);
 referenceAxisMesh.translateAll(new Vector3(-3, 2, 0));
 
@@ -2280,6 +2317,37 @@ function renderSettingsButton() {
     ctx.fill();
 }
 
+function renderHelpButton() {
+    // question mark
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffffff";
+    ctx.font = "40px Courier New";
+    ctx.fillText("?", 112, 65);
+    
+    // box
+    ctx.beginPath();
+    if (checkBoxHover(100, 30, 50, 50)) {
+        ctx.fillStyle = "#80808080";
+        if (mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+            if (screen == SCREENTYPE.PUZZLE) {
+                screen = SCREENTYPE.PUZZLE_TO_HELPINFO;
+            } else if (screen == SCREENTYPE.HELPINFO) {
+                screen = SCREENTYPE.HELPINFO_TO_PUZZLE;
+            }
+            if (soundEffectsOn == 1) {
+                playAudio(orientSound, false);
+            } else if (soundEffectsOn == 2) {
+                playAudio(fartSound, false);
+            }
+            settingsButtonTimer = 0;
+        }
+    } else {
+        ctx.fillStyle = "#40404080";
+    }
+    ctx.roundRect(100, 30, 50, 50, 8);
+    ctx.fill();
+}
+
 function toggleScramblePuzzle() {
     scrambling = true;
     turnList = [];
@@ -2323,20 +2391,40 @@ function renderScrambleButton() {
     ctx.fillText("Scramble", 110, 64);
 }
 
+function resetPuzzleColors() {
+    setCuboidAllColors(0, 0, [7, 1, 5, 2]);
+    setCuboidAllColors(1, 1, [0, 7, 2, 5]);
+    setCuboidAllColors(2, 1, [4, 2, 7, 1]);
+    setCuboidAllColors(3, 0, [2, 4, 0, 7]);
+    setCuboidAllColors(4, 0, [0, 7, 3, 5]);
+    setCuboidAllColors(5, 1, [7, 1, 5, 3]);
+    setCuboidAllColors(6, 1, [3, 4, 0, 7]);
+    setCuboidAllColors(7, 0, [4, 3, 7, 1]);
+    setCuboidAllColors(8, 0, [0, 6, 2, 5]);
+    setCuboidAllColors(9, 1, [6, 1, 5, 2]);
+    setCuboidAllColors(10, 1, [2, 4, 0, 6]);
+    setCuboidAllColors(11, 0, [4, 2, 6, 1]);
+    setCuboidAllColors(12, 0, [6, 1, 5, 3]);
+    setCuboidAllColors(13, 1, [0, 6, 3, 5]);
+    setCuboidAllColors(14, 1, [4, 3, 6, 1]);
+    setCuboidAllColors(15, 0, [3, 4, 0, 6]);
+}
+
 function toggleResetPuzzle() {
     clearTimeout(recentTimeout);
     scrambling = false;
     turnList = [];
     turnListIndex = -1;
-    separated = false;
-    scaleDistance = 0;
+    // separated = false;
+    // scaleDistance = 0;
     hasBeenScrambled = false;
     hasBeenSolved = false;
     turnSpeed = speedList[turnSpeedIndex] / 15;
     animationProgress = 0;
     animating = ANIMATION.NONE;
-    puzzle = create2to4(new Vector3(0, 0, 2));
-    referenceAxisMesh.resetEuler();
+    // puzzle = create2to4(new Vector3(0, 0, 2));
+    resetPuzzleColors();
+    // referenceAxisMesh.resetEuler();
     if (soundEffectsOn == 1) {
         playAudio(orientSound, false);
     } else if (soundEffectsOn == 2) {
@@ -2477,6 +2565,27 @@ function renderSettingsScreenButtons() {
         }
     }
     ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + 30 + settingsScroll);
+    
+    settingsScreenButtonHeight += 60;
+
+    // cam dist button
+    ctx.beginPath();
+    ctx.font = "40px Courier New";
+    message = "";
+    ctx.fillStyle = "#ffffffff";
+    message = `Camera Distance: ${puzzleSolverDistance}`;
+    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+        mouseDown = false;
+        puzzleSolverDistance = Number(prompt(`Type the desired camera distance:`));
+        updatePuzzleDistance();
+        settingsButtonTimer = 0;
+        if (soundEffectsOn == 1) {
+            playAudio(orientSound, false);
+        } else if (soundEffectsOn == 2) {
+            playAudio(fartSound, false);
+        }
+    }
+    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + 30 + settingsScroll);
 
     settingsScreenButtonHeight += 120;
 
@@ -2523,18 +2632,29 @@ function renderSettingsScreenButtons() {
     renderColorSchemeButton(colorScheme[5], "Blue", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
     renderColorSchemeButton(colorScheme[6], "Pink", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
     renderColorSchemeButton(colorScheme[7], "Purple", settingsScreenButtonHeight); settingsScreenButtonHeight += 120;
-
-    // notes
-    writeNote("Extra Notes", settingsScreenButtonHeight); settingsScreenButtonHeight += 120;
-    writeNote("Rotate Puzzle: Click & Drag", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
-    writeNote("Explode Pieces: Scroll", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
 }
 
-function writeNote(note, y) {
+function renderHelpScreenText() {
+    var helpScreenTextHeight = 90;
+
+    // notes
+    writeNote("Help/Info", helpScreenTextHeight, 40); helpScreenTextHeight += 120;
+    writeNote("Overview", helpScreenTextHeight, 40); helpScreenTextHeight += 60;
+    writeNote("A virtual simulation of the physical 2x2x2x2 puzzle.\nAlso commonly called the 2^4.", helpScreenTextHeight, 20); helpScreenTextHeight += 120;
+    writeNote("Controls", helpScreenTextHeight, 40); helpScreenTextHeight += 60;
+    writeNote("Orienting does not change what turns will do.\nUse the x, x', y2, z2 controls, and reference axis,\nto make sense of a move in a particular orientation.", helpScreenTextHeight, 20); helpScreenTextHeight += 100;
+    writeNote("Rotate Puzzle: Click & Drag", helpScreenTextHeight, 20); helpScreenTextHeight += 60;
+    writeNote("Explode Pieces: Scroll", helpScreenTextHeight, 20); helpScreenTextHeight += 60;
+}
+
+function writeNote(note, y, size) {
     ctx.beginPath();
-    ctx.font = "40px Courier New";
+    ctx.font = `${size}px Courier New`;
     ctx.fillStyle = "#ffff00ff";
-    ctx.fillText(note, (c.width / 2) - (ctx.measureText(note).width / 2), y + 30 + settingsScroll);
+    note = note.split("\n");
+    for (var i = 0; i < note.length; i++) {
+        ctx.fillText(note[i], (c.width / 2) - (ctx.measureText(note[i]).width / 2), y + 30 + (size * i) + settingsScroll);
+    }
 }
 
 function renderColorSchemeButton(color, colorName, y) {
@@ -2663,8 +2783,11 @@ const SCREENTYPE = {
     NULL_TO_PUZZLE: 0.1,
     PUZZLE: 1,
     PUZZLE_TO_SETTINGS: 1.2,
+    PUZZLE_TO_HELPINFO: 1.3,
     SETTINGS: 2,
-    SETTINGS_TO_PUZZLE: 2.1
+    SETTINGS_TO_PUZZLE: 2.1,
+    HELPINFO: 3,
+    HELPINFO_TO_PUZZLE: 3.1
 };
 
 var screen = SCREENTYPE.NULL_TO_PUZZLE;
@@ -2695,7 +2818,7 @@ function main() {
             ctx.fillRect(0, 0, c.width, c.height);
 
             // reset check
-            if (checkKeyBind(keyBinds.reset)) {
+            if (checkKeyBind(keyBinds.reset) && !scrambling) {
                 toggleResetPuzzle();
             }
 
@@ -2777,6 +2900,9 @@ function main() {
             // settings button
             renderSettingsButton();
 
+            // help button
+            renderHelpButton();
+
             // // scramble button
             // renderScrambleButton();
 
@@ -2798,6 +2924,11 @@ function main() {
         case SCREENTYPE.PUZZLE_TO_SETTINGS: {
             message = "";
             screen = SCREENTYPE.SETTINGS;
+            break;
+        }
+        case SCREENTYPE.PUZZLE_TO_HELPINFO: {
+            message = "";
+            screen = SCREENTYPE.HELPINFO;
             break;
         }
         case SCREENTYPE.SETTINGS: {
@@ -2826,6 +2957,44 @@ function main() {
             break;
         }
         case SCREENTYPE.SETTINGS_TO_PUZZLE: {
+            screen = SCREENTYPE.PUZZLE;
+            break;
+        }
+        case SCREENTYPE.HELPINFO: {
+            // update timers
+            settingsButtonTimer += deltaTime;
+
+            // render background
+            ctx.beginPath();
+            ctx.fillStyle = "#000000ff";
+            ctx.fillRect(0, 0, c.width, c.height);
+
+            // // hidden message
+            // ctx.beginPath();
+            // ctx.font = "20px Courier New";
+            // ctx.fillStyle = "#ffffffff";
+            // message = "hiii :3";
+            // ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), -520 + settingsScroll);
+            // message = "there's no more settings up here :C";
+            // ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), -1020 + settingsScroll);
+
+            // help button
+            renderHelpButton();
+
+            // all other buttons on the settings screen
+            renderHelpScreenText();
+
+            // left-right bounds (for min res of 640x480 (480p))
+            ctx.strokeStyle = "#ffffffff";
+            ctx.lineWidth = 4;
+            ctx.moveTo((c.width / 2) - 320, 0);
+            ctx.lineTo((c.width / 2) - 320, c.height);
+            ctx.moveTo((c.width / 2) + 320, 0);
+            ctx.lineTo((c.width / 2) + 320, c.height);
+            ctx.stroke();
+            break;
+        }
+        case SCREENTYPE.HELPINFO_TO_PUZZLE: {
             screen = SCREENTYPE.PUZZLE;
             break;
         }
