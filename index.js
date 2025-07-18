@@ -883,7 +883,7 @@ function createReferenceAxisMesh(axisLength, axisWidth) {
             const c = a + (segments + 1);
             const d = c + 1;
 
-            obj.addTriangle(new Triangle(points[a], points[c], points[b], null, 0, "#ffffff40"));
+            obj.addTriangle(new Triangle(points[a], points[c], points[b], null, 0, "#ffffff20"));
         }
     }
 
