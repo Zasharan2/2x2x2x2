@@ -94,10 +94,14 @@ document.addEventListener("wheel", function(event) {
             }
             break;
         }
-        case SCREENTYPE.SETTINGS:
-        case SCREENTYPE.HELPINFO:
+        case SCREENTYPE.SETTINGS: {
             settingsScroll -= event.deltaY * deltaTime / 3;
             break;
+        }
+        case SCREENTYPE.HELPINFO: {
+            helpScroll -= event.deltaY * deltaTime / 3;
+            break;
+        }
     }
 });
 
@@ -462,7 +466,7 @@ class Camera {
     }
 }
 
-var FOV = Math.PI / 4; // 90 degrees
+var FOV = Math.PI / 4; // 45 degrees
 var camera = new Camera(new Vector3(0, 0, 0), new Vector3(0, 0, 1));
 var lightDir = new Vector3(0, 0, 1);
 
@@ -666,7 +670,7 @@ function checkSolved() {
 }
 
 // white yellow red orange green blue pink purple
-var colorScheme = ["#ffffffff", "#ffff00ff", "#ff0000ff", "#ff8000ff", "#00ff00ff", "#0080ffff", "#ff00ffff", "#651a97ff"];
+var colorScheme = ["#ffffff", "#ffff00", "#ff0000", "#ff8000", "#00ff00", "#0080ff", "#ff00ff", "#651a97"];
 
 function updateColorScheme(newColors) {
     for (var i = 0; i < puzzle.length; i++) {
@@ -905,6 +909,7 @@ var puzzleSolverDistance = 5;
 var prevPuzzleSolverDistance = puzzleSolverDistance;
 var puzzle = create2to4(new Vector3(0, 0, puzzleSolverDistance));
 var referenceAxisMesh = createReferenceAxisMesh(0.25, 0.02);
+var defaultOrientation = [0, 0, 0]; // euler angle deviation
 // referenceAxisMesh.translateAll(new Vector3(-3, 2, 0));
 
 function getObjectMeshes(puzzle) {
@@ -1904,6 +1909,7 @@ function highlightPiece(i) {
     }
 }
 
+var defaultBackgroundColor = [0, 0, 0];
 var backgroundColor = [0, 0, 0];
 var turnList = [];
 var turnListIndex = -1;
@@ -1954,7 +1960,7 @@ function handleTurning() {
         if (hasBeenSolved != prevHasBeenSolved) {
             prevHasBeenSolved = hasBeenSolved;
             if (hasBeenSolved) {
-                backgroundColor[1] = 255;
+                backgroundColor = [0, 255, 0];
                 playAudio(solveSound, false);
                 hasBeenScrambled = false;
             }
@@ -2281,6 +2287,7 @@ function checkBoxHover(x, y, w, h) {
 }
 
 var settingsScroll = 0;
+var helpScroll = 0;
 var settingsButtonTimer = 0;
 var settingsButtonDelay = 30;
 var settingsButtonHoveringClickless = false;
@@ -2461,7 +2468,8 @@ function renderResetButton() {
 function renderSettingsScreenButtons() {
     var settingsScreenButtonHeight = 90;
 
-    renderPasteAllSettings(settingsScreenButtonHeight); settingsScreenButtonHeight += 120;
+    renderPasteAllSettings(settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    renderResetAllSettings(settingsScreenButtonHeight); settingsScreenButtonHeight += 120;
 
     // sfx button
     ctx.beginPath();
@@ -2592,6 +2600,28 @@ function renderSettingsScreenButtons() {
     }
     ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + 30 + settingsScroll);
 
+    settingsScreenButtonHeight += 60;
+
+    // default orientation
+    ctx.beginPath();
+    ctx.font = "40px Courier New";
+    message = "";
+    ctx.fillStyle = "#ffffffff";
+    message = `Default Orientation: [${roundTo(defaultOrientation[0], 3)}, ${roundTo(defaultOrientation[1], 3)}, ${roundTo(defaultOrientation[2], 3)}]`;
+    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+        mouseDown = false;
+        defaultOrientation[0] = Math.atan2(referenceAxisMesh.localAxis[1].z, referenceAxisMesh.localAxis[2].z);
+        defaultOrientation[1] = Math.asin(-referenceAxisMesh.localAxis[0].z);
+        defaultOrientation[2] = Math.atan2(referenceAxisMesh.localAxis[0].y, referenceAxisMesh.localAxis[0].x);
+        settingsButtonTimer = 0;
+        if (soundEffectsOn == 1) {
+            playAudio(orientSound, false);
+        } else if (soundEffectsOn == 2) {
+            playAudio(fartSound, false);
+        }
+    }
+    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + 30 + settingsScroll);
+
     settingsScreenButtonHeight += 120;
 
     renderPasteKeybind(settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
@@ -2628,7 +2658,9 @@ function renderSettingsScreenButtons() {
     keyBinds.gyroPrime = renderKeybind(keyBinds.gyroPrime, "Gyro'", settingsScreenButtonHeight); settingsScreenButtonHeight += 120;
 
     renderPasteColors(settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    renderPasteColorblindColors(settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
 
+    renderColorBackgroundButton(settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
     renderColorSchemeButton(colorScheme[0], "White", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
     renderColorSchemeButton(colorScheme[1], "Yellow", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
     renderColorSchemeButton(colorScheme[2], "Red", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
@@ -2658,7 +2690,40 @@ function writeNote(note, y, size) {
     ctx.fillStyle = "#ffff00ff";
     note = note.split("\n");
     for (var i = 0; i < note.length; i++) {
-        ctx.fillText(note[i], (c.width / 2) - (ctx.measureText(note[i]).width / 2), y + 30 + (size * i) + settingsScroll);
+        ctx.fillText(note[i], (c.width / 2) - (ctx.measureText(note[i]).width / 2), y + 30 + (size * i) + helpScroll);
+    }
+}
+
+function componentToHex(c) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+}
+
+function rgbToHex(r, g, b) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : null;
+}
+
+function renderColorBackgroundButton(y) {
+    ctx.beginPath();
+    ctx.font = "40px Courier New";
+    ctx.fillStyle = "#ffffff";
+    message = `Color Background: ${rgbToHex(defaultBackgroundColor[0], defaultBackgroundColor[1], defaultBackgroundColor[2])}`;
+    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), y + 30 + settingsScroll);
+    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), y + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+        mouseDown = false;
+        var userColor = prompt(`Type the desired color in hexadecimal RGB format.`, rgbToHex(defaultBackgroundColor[0], defaultBackgroundColor[1], defaultBackgroundColor[2]));
+        settingsButtonTimer = 0;
+        if (soundEffectsOn == 1) {
+            playAudio(orientSound, false);
+        } else if (soundEffectsOn == 2) {
+            playAudio(fartSound, false);
+        }
+        defaultBackgroundColor = hexToRgb(userColor);
     }
 }
 
@@ -2670,7 +2735,7 @@ function renderColorSchemeButton(color, colorName, y) {
     ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), y + 30 + settingsScroll);
     if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), y + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         mouseDown = false;
-        var userColor = prompt("Type the desired color in hexadecimal RGBA format. Example format: '#ff0000ff'");
+        var userColor = prompt(`Type the desired color in hexadecimal RGB format.`, color);
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
             playAudio(orientSound, false);
@@ -2718,11 +2783,32 @@ function renderPasteColors(y) {
     if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), y + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         mouseDown = false;
         var newColors;
-        newColors = prompt(`If you have a color scheme, you may paste it below. As an example, a colorblind color set is provided: ["#ffffffff","#4a4a4aff","#d55e00ff","#e69f00ff","#cc79a7ff","#56b4e9ff","#f0e442ff","#0072b2ff"].`, JSON.stringify(colorScheme));
+        newColors = prompt(`If you have a color scheme, you may paste it below.`, JSON.stringify([rgbToHex(defaultBackgroundColor[0], defaultBackgroundColor[1], defaultBackgroundColor[2]), ...colorScheme]));
         if (newColors != null && newColors != "") {
             newColors = JSON.parse(newColors);
+            defaultBackgroundColor = hexToRgb(newColors[0]);
+            newColors.splice(0, 1);
             updateColorScheme(newColors);
         }
+        settingsButtonTimer = 0;
+        if (soundEffectsOn == 1) {
+            playAudio(orientSound, false);
+        } else if (soundEffectsOn == 2) {
+            playAudio(fartSound, false);
+        }
+    }
+}
+
+function renderPasteColorblindColors(y) {
+    ctx.beginPath();
+    ctx.font = "40px Courier New";
+    ctx.fillStyle = "#ffffffff";
+    message = `Paste Colorblind Colors`;
+    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), y + 30 + settingsScroll);
+    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), y + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+        mouseDown = false;
+        defaultBackgroundColor = [0, 0, 0];
+        updateColorScheme(["#ffffff","#4a4a4a","#d55e00","#e69f00","#cc79a7","#56b4e9","#f0e442","#0072b2"]);
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
             playAudio(orientSound, false);
@@ -2754,6 +2840,26 @@ function renderPasteKeybind(y) {
     }
 }
 
+function setAllSettingsFromString(res) {
+    if (res != null && res != "") {
+        res = JSON.parse(res);
+        soundEffectsOn = res.sfx;
+        turnSpeedIndex = res.turnSpeed;
+        turnSpeed = speedList[turnSpeedIndex] / 15;
+        instantGyros = res.instantGyros;
+        targetScrambleTurnCount = res.scrambleCount;
+        keyBinds = res.keyBinds;
+        colorScheme = res.colorScheme;
+        defaultBackgroundColor = hexToRgb(colorScheme[0]);
+        colorScheme.splice(0, 1);
+        updateColorScheme(colorScheme);
+        FOV = res.fov;
+        puzzleSolverDistance = res.cameraDistance;
+        updatePuzzleDistance();
+        defaultOrientation = res.defaultOrientation;
+    }
+}
+
 function renderPasteAllSettings(y) {
     ctx.beginPath();
     ctx.font = "40px Courier New";
@@ -2762,17 +2868,28 @@ function renderPasteAllSettings(y) {
     ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), y + 30 + settingsScroll);
     if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), y + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         mouseDown = false;
-        var res = prompt(`If you have a settings set, you may paste it below.`, JSON.stringify({sfx: soundEffectsOn, turnSpeed: turnSpeedIndex, instantGyros: instantGyros, scrambleCount: targetScrambleTurnCount, keyBinds: keyBinds, colorScheme: colorScheme}));
-        if (res != null && res != "") {
-            res = JSON.parse(res);
-            soundEffectsOn = res.sfx;
-            turnSpeedIndex = res.turnSpeed;
-            instantGyros = res.instantGyros;
-            targetScrambleTurnCount = res.scrambleCount;
-            keyBinds = res.keyBinds;
-            colorScheme = res.colorScheme;
-            updateColorScheme(colorScheme);
+        var res = prompt(`If you have a settings set, you may paste it below.`, JSON.stringify({sfx: soundEffectsOn, turnSpeed: turnSpeedIndex, instantGyros: instantGyros, scrambleCount: targetScrambleTurnCount, fov: FOV, cameraDistance: puzzleSolverDistance, defaultOrientation: defaultOrientation, keyBinds: keyBinds, colorScheme: [rgbToHex(defaultBackgroundColor[0], defaultBackgroundColor[1], defaultBackgroundColor[2]), ...colorScheme]}));
+        setAllSettingsFromString(res);
+        settingsButtonTimer = 0;
+        if (soundEffectsOn == 1) {
+            playAudio(orientSound, false);
+        } else if (soundEffectsOn == 2) {
+            playAudio(fartSound, false);
         }
+    }
+}
+
+function renderResetAllSettings(y) {
+    ctx.beginPath();
+    ctx.font = "40px Courier New";
+    ctx.fillStyle = "#ffffffff";
+    message = `Reset to Defaults`;
+    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), y + 30 + settingsScroll);
+    if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), y + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+        mouseDown = false;
+        var res = `{"sfx":1,"turnSpeed":4,"instantGyros":false,"scrambleCount":49,"fov":0.7853981633974483,"cameraDistance":5,"defaultOrientation":[0,0,0],"keyBinds":{"separate":[" "],"resetOrientation":["c"],"scramble":["s"],"reset":["S"],"lxTurn":["l","x"],"lyTurn":["l","y"],"lzTurn":["l","z"],"rxTurn":["r","x"],"ryTurn":["r","y"],"rzTurn":["r","z"],"ixTurn":["i","x"],"oxTurn":["o","x"],"lxPrimeTurn":["L","X"],"lyPrimeTurn":["L","Y"],"lzPrimeTurn":["L","Z"],"rxPrimeTurn":["R","X"],"ryPrimeTurn":["R","Y"],"rzPrimeTurn":["R","Z"],"ixPrimeTurn":["I","X"],"oxPrimeTurn":["O","X"],"u2Turn":["u"],"f2Turn":["f"],"d2Turn":["d"],"b2Turn":["b"],"xTurn":["x"],"xPrimeTurn":["X"],"y2Turn":["y"],"z2Turn":["z"],"gyro":["g"],"gyroPrime":["G"]},"colorScheme":["#000000","#ffffff","#ffff00","#ff0000","#ff8000","#00ff00","#0080ff","#ff00ff","#651a97"]}`;
+        setAllSettingsFromString(res);
+        updateColorScheme(colorScheme);
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
             playAudio(orientSound, false);
@@ -2821,9 +2938,10 @@ function main() {
 
             // fade background to black
             for (var i = 0; i < 3; i++) {
-                if (backgroundColor[i] > 0) {
-                    backgroundColor[i] = Math.max(0, backgroundColor[i] - deltaTime);
-                }
+                backgroundColor[i] += ((defaultBackgroundColor[i] - backgroundColor[i]) / 35) * deltaTime;
+                // if (backgroundColor[i] > 0) {
+                //     backgroundColor[i] = Math.max(0, backgroundColor[i] - deltaTime);
+                // }
             }
 
             // render background
@@ -2873,8 +2991,10 @@ function main() {
             if (checkKeyBind(keyBinds.resetOrientation) && resetRotationTimer > 30) {
                 for (var i = 0; i < puzzle.length; i++) {
                     puzzle[i].mesh.resetEuler();
+                    puzzle[i].mesh.rotateEulerLocal(defaultOrientation[0], defaultOrientation[1], defaultOrientation[2]);
                 }
                 referenceAxisMesh.resetEuler();
+                referenceAxisMesh.rotateEulerLocal(defaultOrientation[0], defaultOrientation[1], defaultOrientation[2]);
                 if (soundEffectsOn == 1) {
                     playAudio(orientSound, false);
                 } else if (soundEffectsOn == 2) {
@@ -2991,9 +3111,9 @@ function main() {
             // ctx.font = "20px Courier New";
             // ctx.fillStyle = "#ffffffff";
             // message = "hiii :3";
-            // ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), -520 + settingsScroll);
+            // ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), -520 + helpScroll);
             // message = "there's no more settings up here :C";
-            // ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), -1020 + settingsScroll);
+            // ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), -1020 + helpScroll);
 
             // help button
             renderHelpButton();
