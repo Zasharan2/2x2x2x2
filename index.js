@@ -2292,6 +2292,12 @@ var settingsButtonTimer = 0;
 var settingsButtonDelay = 30;
 var settingsButtonHoveringClickless = false;
 function renderSettingsButton() {
+    // label
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffffff";
+    ctx.font = "20px Courier New";
+    ctx.fillText("Menu", 31, 25);
+
     // three bars
     ctx.beginPath();
     ctx.fillStyle = "#ffffffff";
@@ -2328,6 +2334,12 @@ function renderSettingsButton() {
 
 var helpButtonHoveringClickless = false;
 function renderHelpButton() {
+    // label
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffffff";
+    ctx.font = "20px Courier New";
+    ctx.fillText("Help", 101, 25);
+
     // question mark
     ctx.beginPath();
     ctx.fillStyle = "#ffffffff";
@@ -2358,6 +2370,98 @@ function renderHelpButton() {
     ctx.fill();
 
     helpButtonHoveringClickless = checkBoxHover(100, 30, 50, 50) && !mouseDown;
+}
+
+function renderUndoButton() {
+    // label
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffffff";
+    ctx.font = "20px Courier New";
+    ctx.fillText("Undo", 171, 25);
+
+    // left arrow
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffffff";
+    ctx.font = "40px Courier New";
+    ctx.fillText("<", 182, 65);
+    
+    // box
+    ctx.beginPath();
+    if (checkBoxHover(170, 30, 50, 50)) {
+        ctx.fillStyle = "#80808080";
+        if (mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay && animating == ANIMATION.NONE) {
+            // else, cannot undo
+            if (turnList.length > 0 && turnListIndex >= 0) {
+                turnType = oppositeTurns[turnList[turnListIndex--]];
+                if (turnType == "gyroA" || turnType == "gyropA") {
+                    undoMove = true;
+                    if ((instantGyros && instantGyroTimer > instantGyroDelay) || (!instantGyros)) {
+                        animationProgress = 0;
+                        animationIncrement = 0;
+                        if (instantGyros) { turnSpeed = 1000; }
+                        animating = ANIMATION.TURN;
+                        instantGyroTimer = 0;
+                    }
+                } else {
+                    undoMove = true;
+                    animationProgress = 0;
+                    animationIncrement = 0;
+                    animating = ANIMATION.TURN;
+                }
+            }
+            settingsButtonTimer = 0;
+        }
+    } else {
+        ctx.fillStyle = "#40404080";
+    }
+    ctx.roundRect(170, 30, 50, 50, 8);
+    ctx.fill();
+}
+
+function renderRedoButton() {
+    // label
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffffff";
+    ctx.font = "20px Courier New";
+    ctx.fillText("Redo", 241, 25);
+
+    // right arrow
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffffff";
+    ctx.font = "40px Courier New";
+    ctx.fillText(">", 252, 65);
+    
+    // box
+    ctx.beginPath();
+    if (checkBoxHover(240, 30, 50, 50)) {
+        ctx.fillStyle = "#80808080";
+        if (mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay && animating == ANIMATION.NONE) {
+            // else, cannot redo
+            if (turnList.length > 0 && turnListIndex < turnList.length - 1) {
+                turnType = turnList[++turnListIndex];
+                if (turnType == "gyroA" || turnType == "gyropA") {
+                    redoMove = true;
+                    if ((instantGyros && instantGyroTimer > instantGyroDelay) || (!instantGyros)) {
+                        animationProgress = 0;
+                        animationIncrement = 0;
+                        if (instantGyros) { turnSpeed = 1000; }
+                        animating = ANIMATION.TURN;
+                        instantGyroTimer = 0;
+                    }
+                } else {
+                    redoMove = true;
+                    animationProgress = 0;
+                    animationIncrement = 0;
+                    animating = ANIMATION.TURN;
+                }
+            }
+            settingsButtonTimer = 0;
+        }
+    } else {
+        ctx.fillStyle = "#40404080";
+    }
+    ctx.roundRect(240, 30, 50, 50, 8);
+    ctx.fill();
 }
 
 function toggleScramblePuzzle() {
@@ -2559,6 +2663,36 @@ function renderSettingsScreenButtons() {
     }
     ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + 30 + settingsScroll);
 
+    settingsScreenButtonHeight += 60;
+
+    // load moves button
+    ctx.beginPath();
+    ctx.font = "40px Courier New";
+    message = "";
+    ctx.fillStyle = "#ffffffff";
+    message = `Load Moves`;
+    if (!scrambling && checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
+        mouseDown = false;
+        var loadMoves = prompt(`Type the moveset using 2^4 notation. (Example format: " Rx, U2, Ix, yx, Ix' ")`);
+        if (!(loadMoves == "" || loadMoves == null)) {
+            toggleResetPuzzle();
+            loadMoves = loadMoves.replace(/\s+/g, "");
+            loadMoves = loadMoves.toLowerCase();
+            loadMoves = loadMoves.replace("xy", "gyropA");
+            loadMoves = loadMoves.replace("yx", "gyroA");
+            loadMoves = loadMoves.replaceAll("'", "p").split(",");
+            turnList = loadMoves;
+            turnListIndex = -1;
+        }
+        settingsButtonTimer = 0;
+        if (soundEffectsOn == 1) {
+            playAudio(orientSound, false);
+        } else if (soundEffectsOn == 2) {
+            playAudio(fartSound, false);
+        }
+    }
+    ctx.fillText(message, (c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + 30 + settingsScroll);
+
     settingsScreenButtonHeight += 120;
 
     // FOV button
@@ -2654,8 +2788,8 @@ function renderSettingsScreenButtons() {
     keyBinds.xPrimeTurn = renderKeybind(keyBinds.xPrimeTurn, "x'", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
     keyBinds.y2Turn = renderKeybind(keyBinds.y2Turn, "y2", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
     keyBinds.z2Turn = renderKeybind(keyBinds.z2Turn, "z2", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
-    keyBinds.gyro = renderKeybind(keyBinds.gyro, "Gyro", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
-    keyBinds.gyroPrime = renderKeybind(keyBinds.gyroPrime, "Gyro'", settingsScreenButtonHeight); settingsScreenButtonHeight += 120;
+    keyBinds.gyro = renderKeybind(keyBinds.gyro, "yx (gyro)", settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
+    keyBinds.gyroPrime = renderKeybind(keyBinds.gyroPrime, "xy (gyro')", settingsScreenButtonHeight); settingsScreenButtonHeight += 120;
 
     renderPasteColors(settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
     renderPasteColorblindColors(settingsScreenButtonHeight); settingsScreenButtonHeight += 60;
@@ -2808,7 +2942,7 @@ function renderPasteColorblindColors(y) {
     if (checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), y + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         mouseDown = false;
         defaultBackgroundColor = [0, 0, 0];
-        updateColorScheme(["#ffffff","#4a4a4a","#d55e00","#e69f00","#cc79a7","#56b4e9","#f0e442","#0072b2"]);
+        updateColorScheme(["#ffffff","#4a4a4a","#d55e00","#e69f00","#cc79a7","#f0e442","#56b4e9","#0072b2"]);
         settingsButtonTimer = 0;
         if (soundEffectsOn == 1) {
             playAudio(orientSound, false);
@@ -3039,6 +3173,10 @@ function main() {
 
             // help button
             renderHelpButton();
+
+            // undo/redo buttons
+            renderUndoButton();
+            renderRedoButton();
 
             // // scramble button
             // renderScrambleButton();
