@@ -2665,21 +2665,34 @@ function renderSettingsScreenButtons() {
 
     settingsScreenButtonHeight += 60;
 
-    // load moves button
+    // copypaste moveset button
     ctx.beginPath();
     ctx.font = "40px Courier New";
     message = "";
     ctx.fillStyle = "#ffffffff";
-    message = `Load Moves`;
+    message = `Copy/Paste Moveset`;
     if (!scrambling && checkBoxHover((c.width / 2) - (ctx.measureText(message).width / 2), settingsScreenButtonHeight + settingsScroll, ctx.measureText(message).width, 40) && mouseDown && mouseButton == 1 && settingsButtonTimer > settingsButtonDelay) {
         mouseDown = false;
-        var loadMoves = prompt(`Type the moveset using 2^4 notation. (Example format: " Rx, U2, Ix, yx, Ix' ")`);
+        var loadMoves = turnList;
+        loadMoves = loadMoves.join(", ");
+        loadMoves = loadMoves.replaceAll("gyroA", "yx");
+        loadMoves = loadMoves.replaceAll("gyropA", "xy");
+        loadMoves = loadMoves.replaceAll("p", "'");
+        loadMoves = loadMoves.replaceAll("l", "L");
+        loadMoves = loadMoves.replaceAll("r", "R");
+        loadMoves = loadMoves.replaceAll("i", "I");
+        loadMoves = loadMoves.replaceAll("o", "O");
+        loadMoves = loadMoves.replaceAll("u", "U");
+        loadMoves = loadMoves.replaceAll("f", "F");
+        loadMoves = loadMoves.replaceAll("d", "D");
+        loadMoves = loadMoves.replaceAll("b", "B");
+        loadMoves = prompt(`Type the moveset using 2^4 notation. (Example format: " Rx, U2, Ix, yx, Ix' ")`, loadMoves);
         if (!(loadMoves == "" || loadMoves == null)) {
             toggleResetPuzzle();
             loadMoves = loadMoves.replace(/\s+/g, "");
             loadMoves = loadMoves.toLowerCase();
-            loadMoves = loadMoves.replace("xy", "gyropA");
-            loadMoves = loadMoves.replace("yx", "gyroA");
+            loadMoves = loadMoves.replaceAll("xy", "gyropA");
+            loadMoves = loadMoves.replaceAll("yx", "gyroA");
             loadMoves = loadMoves.replaceAll("'", "p").split(",");
             turnList = loadMoves;
             turnListIndex = -1;
