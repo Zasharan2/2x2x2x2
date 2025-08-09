@@ -215,7 +215,8 @@ window.addEventListener("mousemove", function(event) {
     mousePos.x = (event.clientX - c.getBoundingClientRect().left);
     mousePos.y = (event.clientY - c.getBoundingClientRect().top);
 
-    mouseDelta = mousePos.sub(mousePrevPos).mul(0.05).div(mouseDeltaTime);
+    // mouseDelta = mousePos.sub(mousePrevPos).mul(0.05).div(mouseDeltaTime);
+    mouseDelta = mousePos.sub(mousePrevPos).mul(0.005);
 
     mousePrevPos.copyFrom(mousePos);
     
