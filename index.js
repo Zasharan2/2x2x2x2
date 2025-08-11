@@ -209,8 +209,8 @@ var mousePrevTime = Date.now();
 var mouseDeltaTime = 0;
 
 window.addEventListener("mousemove", function(event) {
-    mouseDeltaTime = Date.now() - mousePrevTime;
-    mousePrevTime = Date.now();
+    // mouseDeltaTime = Date.now() - mousePrevTime;
+    // mousePrevTime = Date.now();
 
     mousePos.x = (event.clientX - c.getBoundingClientRect().left);
     mousePos.y = (event.clientY - c.getBoundingClientRect().top);
