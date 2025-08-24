@@ -1,12 +1,302 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <!-- by zasharan2 yo -->
-        <title>2x2x2x2</title>
-        <link href = "index.css", rel = "stylesheet">
-    </head>
-    <body>
-        <canvas id = "mainCanvas"></canvas>
-        <script src = "index.js"></script>
-    </body>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>2x2x2x2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="index.css" rel="stylesheet" />
+    <style>
+      /* Layout: canvas (left) + FIXED right toolbar */
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        background: #000;
+        /* Reserve space so the fixed toolbar doesn't cover the canvas */
+        padding-right: 300px; /* must match #turnToolbar width */
+      }
+
+      /* Canvas fills remaining space */
+      #mainCanvas {
+        flex: 1 1 auto;
+        height: 100%;
+        display: block;
+        background: #000;
+      }
+
+      /* Compact toolbar, fixed to the top-right, scrollable */
+      #turnToolbar {
+        position: fixed;          /* <-- out of flow, pinned */
+        top: 0;                   /* <-- flush to very top */
+        right: 0;
+        width: 300px;
+        height: 100vh;            /* fill viewport height */
+        overflow-y: auto;         /* scroll when long */
+        padding: 8px;             /* tight padding */
+        border-left: 1px solid #2a2f35;
+        background: rgba(20, 23, 28, 0.86);
+        backdrop-filter: blur(6px);
+        box-shadow: -2px 0 20px rgba(0, 0, 0, 0.5);
+        z-index: 1000;            /* sit above canvas/UI */
+
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* two columns */
+        gap: 6px;               /* tight gaps */
+      }
+
+      #turnToolbar .group {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+
+      /* If you want 4-narrow buttons in a row, add .row-4 */
+      #turnToolbar .group.row-4 { grid-template-columns: repeat(4, 1fr); }
+
+      #turnToolbar .group label {
+        grid-column: 1 / -1;
+        font: 700 12px/1.1 ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+              Roboto, "Helvetica Neue", Arial;
+        color: #cbd5e1;
+        opacity: .9;
+        margin: 2px 0 2px;
+      }
+
+      #turnToolbar button {
+        padding: 6px 8px;          /* smaller buttons */
+        font: 700 13px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+              Roboto, "Helvetica Neue", Arial;
+        border: 2px solid #2a2f35;
+        border-radius: 10px;
+        background: #1f2329;
+        color: #e6ebf2;
+        cursor: pointer;
+        transition: background .15s ease, transform .05s ease, border-color .15s ease;
+        min-width: 0;              /* allow narrow buttons in 4-col rows */
+      }
+
+      #turnToolbar button:hover { background:#2a2f35; }
+      #turnToolbar button:active { transform: translateY(1px); }
+    </style>
+  </head>
+  <body>
+    <canvas id="mainCanvas"></canvas>
+
+    <!-- Toolbar -->
+    <div id="turnToolbar" aria-label="Controls">
+      <div class="group row-4">
+        <label>Actions</label>
+        <button data-action="separate">Separate</button>
+        <button data-action="reorient">Reorient</button>
+        <button data-action="scramble">Scramble</button>
+        <button data-action="reset">Reset</button>        
+      </div>
+
+      <div class="group row-4">
+        <label>L layer</label>
+        <button data-turn="lx">Lx</button>
+        <button data-turn="lxp">Lx′</button>
+        <button data-turn="ly">Ly</button>
+        <button data-turn="lyp">Ly′</button>
+        <button data-turn="lz">Lz</button>
+        <button data-turn="lzp">Lz′</button>
+      </div>
+
+      <div class="group row-4">
+        <label>R layer</label>
+        <button data-turn="rx">Rx</button>
+        <button data-turn="rxp">Rx′</button>
+        <button data-turn="ry">Ry</button>
+        <button data-turn="ryp">Ry′</button>
+        <button data-turn="rz">Rz</button>
+        <button data-turn="rzp">Rz′</button>
+      </div>
+
+      <div class="group row-4">
+        <label>Inner layer</label>
+        <button data-turn="ix">Ix</button>
+        <button data-turn="ixp">Ix′</button>
+        <button data-turn="ox">Ox</button>
+        <button data-turn="oxp">Ox′</button>
+      </div>
+
+      <div class="group row-4">
+        <label>Face 180s</label>
+        <button data-turn="u2">U2</button>
+        <button data-turn="f2">F2</button>
+        <button data-turn="d2">D2</button>
+        <button data-turn="b2">B2</button>
+      </div>
+
+      <div class="group row-4">
+        <label>Whole-cube</label>
+        <button data-turn="x">x</button>
+        <button data-turn="xp">x′</button>
+        <button data-turn="y2">y2</button>
+        <button data-turn="z2">z2</button>
+      </div>
+
+      <div class="group">
+        <label>Gyro</label>
+        <div class="group row-4" style="grid-template-columns: 1fr 1fr;">
+          <button data-gyro="gyroA">yx (gyro)</button>
+          <button data-gyro="gyropA">xy (gyro′)</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <label>Macros</label>
+        <button data-macro="ctwists">corner twist</button>
+        <button data-macro="swap2">corner swap</button>
+        <button data-macro="180c0">half turn</button>
+        <button data-macro="monoflip">monoflip</button>
+        <!-- used this for monoflip  <button data-macro="offaxial">off-yx Ix xy</button> -->
+      </div>
+    </div>
+
+    <!-- button app -->
+    <script src="index.js"></script>
+
+    <!-- Wiring + macro queue  -->
+    <script>
+      (function () {
+        function focusCanvas() {
+          const c = document.getElementById('mainCanvas');
+          if (c && typeof c.focus === 'function') c.focus();
+        }
+        function tapKey(key) {
+          focusCanvas();
+          const base = { bubbles:true, cancelable:true, composed:true, key };
+          const code = key === ' ' ? 'Space'
+                     : key.toLowerCase() === 'c' ? 'KeyC'
+                     : key.toLowerCase() === 's' ? 'KeyS'
+                     : key.toLowerCase() === 'g' ? 'KeyG'
+                     : undefined;
+          const down = new KeyboardEvent('keydown', { ...base, code });
+          const up   = new KeyboardEvent('keyup',   { ...base, code });
+          document.dispatchEvent(down);
+          window.dispatchEvent(down);
+          setTimeout(() => { document.dispatchEvent(up); window.dispatchEvent(up); }, 16);
+        }
+        function startTurn(turn) {
+          if (typeof ANIMATION === 'undefined' ||
+              typeof animating  === 'undefined' ||
+              typeof turnType   === 'undefined') return;
+          if (animating !== ANIMATION.NONE) return;
+          animationProgress  = 0;
+          animationIncrement = 0;
+          turnType = turn;
+          animating = ANIMATION.TURN;
+        }
+        const ACTION_TO_KEY = { separate:' ', reorient:'c', scramble:'s', reset:'S' };
+
+        let macroRunning = false;
+        function isIdle() {
+          return (typeof ANIMATION !== 'undefined' &&
+                  typeof animating  !== 'undefined' &&
+                  animating === ANIMATION.NONE);
+        }
+        async function runSteps(steps) {
+          if (macroRunning) return;
+          macroRunning = true;
+          for (const step of steps) {
+            if (step.key)  tapKey(step.key);
+            if (step.turn) startTurn(step.turn);
+            await new Promise(r => setTimeout(r, 30));
+            const t0 = performance.now();
+            while (!isIdle()) {
+              await new Promise(r => requestAnimationFrame(r));
+              if (performance.now() - t0 > 8000) break;
+            }
+          }
+          macroRunning = false;
+        }
+
+        /* ----- Macros ----- */
+        const MACROS = {};
+
+        const A = ['ixp','lzp','ixp','lz','ix','lzp','ix','lz'];
+        const B = ['lzp','ixp','lz','ixp','lzp','ix','lz','ix'];
+        MACROS.ctwists = [
+          'lyp', ...A, ...A, 'lz','ix','lzp', ...B, ...B, 'lz','ixp','lzp', 'ly'
+        ].map(t => ({ turn: t }));
+
+        // Inverse of MACROS.ctwists (used by monoflip)
+        MACROS.ctwists_inv = [
+          'lyp',
+          'lz','ix','lzp',
+          'ixp','lzp','ixp','lz','ix','lzp','ix','lz',
+          'ixp','lzp','ixp','lz','ix','lzp','ix','lz',
+          'lz','ixp','lzp',
+          'lzp','ixp','lz','ixp','lzp','ix','lz','ix',
+          'lzp','ixp','lz','ixp','lzp','ix','lz','ix',
+          'ly'
+        ].map(t => ({ turn: t }));
+
+        const seq180c0 = ['ix','lz','ix','lzp','ixp','lz','ix','lzp'];
+        MACROS['180c0'] = Array.from({ length: 5 }).flatMap(() => seq180c0).map(t => ({ turn: t }));
+
+        const SWAP2 = [
+          'lz','ly','lz','lz','ixp','lzp','lzp',
+          'lyp','ixp','ly',
+          'lz','lz','ix','lzp','lzp',
+          'lyp','ix','ly',
+          'lz','lz','ix','lz','ixp','lzp','ix','ix','lzp','lzp',
+          'lyp','ix','ly',
+          'lz','lz','ix','lzp','lzp',
+          'lyp','ix','ly',
+          'lz','lz','ixp','lzp','lzp',
+          'lyp','ixp','ly',
+          'lz','lz','ix','lz','ix','lz',
+          'lyp','lzp'
+        ].map(t => ({ turn: t }));
+        MACROS.swap2 = SWAP2;
+
+        MACROS.offaxial = [{ turn:'gyroA' }, { turn:'ix' }, { turn:'gyropA' }];
+
+        function expand(...parts) {
+          const out = [];
+          for (const p of parts) {
+            if (!p) continue;
+            if (Array.isArray(p)) out.push(...p);
+            else if (typeof p === 'string') out.push({ turn: p });
+          }
+          return out;
+        }
+        MACROS.monoflip = expand(
+          MACROS.ctwists,
+          MACROS.offaxial,
+          'ixp',
+          MACROS.ctwists_inv,
+          'ix',
+          'gyroA', 'ixp', 'gyropA'
+        );
+
+        function onToolbarClick(e) {
+          const btn = e.target.closest('button');
+          if (!btn) return;
+          const turn  = btn.getAttribute('data-turn');
+          const gyro  = btn.getAttribute('data-gyro');
+          const act   = btn.getAttribute('data-action');
+          const macro = btn.getAttribute('data-macro');
+          if (turn)  { startTurn(turn); return; }
+          if (gyro)  { startTurn(gyro); return; }
+          if (act && ACTION_TO_KEY[act]) { tapKey(ACTION_TO_KEY[act]); return; }
+          if (macro && MACROS[macro])    { runSteps(MACROS[macro]);   return; }
+        }
+        function initToolbar() {
+          const bar = document.getElementById('turnToolbar');
+          if (bar) bar.addEventListener('click', onToolbarClick);
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initToolbar);
+        } else {
+          initToolbar();
+        }
+      })();
+    </script>
+  </body>
 </html>

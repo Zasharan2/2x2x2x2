@@ -105,6 +105,22 @@ document.addEventListener("wheel", function(event) {
     }
 });
 
+const btnLz  = document.getElementById('btn-lz');
+const btnLzp = document.getElementById('btn-lzp');
+
+if (btnLz) {
+  btnLz.addEventListener('click', (e) => {
+    e.stopPropagation();               // don’t let the canvas eat the click
+    startTurn('lz');                   // same as pressing l then z
+  });
+}
+if (btnLzp) {
+  btnLzp.addEventListener('click', (e) => {
+    e.stopPropagation();
+    startTurn('lzp');                  // inverse
+  });
+}
+
 var turnSound = new Audio("sounds/turn.mp3");
 var orientSound = new Audio("sounds/orient.mp3");
 var orient2Sound = new Audio("sounds/orient2.mp3");
@@ -748,6 +764,17 @@ function toggleSeparate() {
     playAudio(orientSound, false);
 }
 
+// Start a turn exactly like the keyboard handler
+function startTurn(turn) {
+  if (animating !== ANIMATION.NONE) return;   // don't interrupt an existing turn
+  animationProgress  = 0;
+  animationIncrement = 0;
+  turnType = turn;             // e.g. "lz", "lzp"
+  animating = ANIMATION.TURN;
+}
+
+
+
 // slowly animate smoothly
 var separateSpeed = 1 / 5;
 function animateSeparation(puzzle) {
@@ -926,7 +953,7 @@ var instantGyros = false;
 var instantGyroTimer = 0;
 var instantGyroDelay = 30;
 var speedList = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 4, 5];
-var turnSpeedIndex = speedList.indexOf(1.25);
+var turnSpeedIndex = speedList.indexOf(4);
 var turnSpeed = speedList[turnSpeedIndex] / 15;
 var angleIncrement = 0;
 function determineTurnIncrement(stick) {
@@ -2373,6 +2400,75 @@ function renderHelpButton() {
     helpButtonHoveringClickless = checkBoxHover(100, 30, 50, 50) && !mouseDown;
 }
 
+
+
+
+
+
+
+
+// ===== Overlay toggle (left button) =====
+var overlayButtonHoveringClickless = false;
+
+function renderOverlayToggleButton() {
+  // Box geometry (next to Help/Undo/Redo row)
+  const x = 310, y = 30, w = 50, h = 50;
+  const bar = document.getElementById('turnToolbar');
+  const isHidden = bar && bar.style.display === 'none';
+
+  // label above the box (reflect ON/OFF)
+  ctx.beginPath();
+  ctx.fillStyle = "#ffffffff";
+  ctx.font = "20px Courier New";
+  ctx.fillText("Btns", x, 25);
+
+  // circle icon
+  ctx.beginPath();
+  ctx.arc(x + w / 2, y + h / 2, 12, 0, Math.PI * 2);
+  ctx.fillStyle = isHidden ? "#ff5050" : "#50ff50"; // red if hidden, green if visible
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#ffffff";
+  ctx.stroke();
+
+  // surrounding box (hover + click)
+  ctx.beginPath();
+  if (checkBoxHover(x, y, w, h)) {
+    ctx.fillStyle = "#80808080";
+    if (overlayButtonHoveringClickless &&
+        mouseDown && mouseButton === 1 &&
+        settingsButtonTimer > settingsButtonDelay) {
+
+      // toggle HTML overlay visibility
+      if (bar) {
+        const hidden = (bar.style.display === 'none');
+        bar.style.display = hidden ? '' : 'none';  // '' = CSS default = visible
+      }
+
+      // sound effects
+      if (soundEffectsOn === 1)      playAudio(orientSound, false);
+      else if (soundEffectsOn === 2) playAudio(fartSound, false);
+
+      settingsButtonTimer = 0;
+    }
+  } else {
+    ctx.fillStyle = "#40404080";
+  }
+
+  ctx.roundRect(x, y, w, h, 8);
+  ctx.fill();
+
+  overlayButtonHoveringClickless = checkBoxHover(x, y, w, h) && !mouseDown;
+}
+
+
+
+
+
+
+
+
+
 function renderUndoButton() {
     // label
     ctx.beginPath();
@@ -3198,6 +3294,8 @@ function main() {
             // // reset button
             // renderResetButton();
 
+renderOverlayToggleButton();
+
             // render solved
             if (hasBeenSolved) {
                 ctx.beginPath();
@@ -3270,6 +3368,8 @@ function main() {
             // help button
             renderHelpButton();
 
+// renderOverlayToggleButton();
+
             // all other buttons on the settings screen
             renderHelpScreenText();
 
@@ -3312,3 +3412,4 @@ function init() {
     window.requestAnimationFrame(loop);
 }
 window.requestAnimationFrame(init);
+

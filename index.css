@@ -2,6 +2,95 @@
 html, body {
     margin: 0;
     padding: 0;
-    overflow: hidden;
     height: 100%;
+    background: #000;              /* Keeps background clean */
+    overflow: hidden;              /* Prevents page scroll */
+}
+
+/* Make canvas fill the entire viewport */
+canvas#mainCanvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Main toolbar container */
+#turnToolbar {
+    position: fixed;
+    top: 120px;                     /* Moves toolbar down to avoid top buttons */
+    right: 12px;                   /* Stick to right edge */
+    z-index: 9999;
+    width: 320px;
+    max-height: calc(100vh - 140px); /* Leaves space at bottom */
+    overflow-y: auto;             /* Scrollable if content is long */
+    padding: 10px;
+    border: 1px solid #2a2f35;
+    border-radius: 12px;
+    background: rgba(20, 23, 28, 0.75);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    pointer-events: auto;
+
+    /* Smooth scrolling for iOS & Mac trackpads */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Group container inside toolbar */
+#turnToolbar .group {
+    grid-column: 1 / -1; /* Group spans full width */
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 6px;
+}
+
+/* Group titles */
+#turnToolbar .group label {
+    grid-column: 1 / -1;
+    font: 700 12px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial;
+    color: #c6cfda;
+    opacity: 0.9;
+    margin: 4px 0 6px;
+}
+
+/* Buttons */
+#turnToolbar button {
+    padding: 8px 10px;
+    font: 700 14px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial;
+    border: 2px solid #2a2f35;
+    border-radius: 8px;
+    background: #202327;
+    color: #eaecef;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.05s ease;
+}
+
+/* Button hover effect */
+#turnToolbar button:hover {
+    background: #2d3339;
+}
+
+/* Button press effect */
+#turnToolbar button:active {
+    transform: translateY(1px);
+}
+
+/* Small-screen optimization */
+@media (max-width: 680px) {
+    #turnToolbar {
+        width: 260px;
+        right: 6px;
+        top: 100px;
+    }
+
+    #turnToolbar button {
+        padding: 6px 8px;
+        font-size: 13px;
+    }
 }
