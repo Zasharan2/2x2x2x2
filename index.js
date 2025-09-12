@@ -2410,6 +2410,8 @@ function renderHelpButton() {
 // ===== Overlay toggle (left button) =====
 var overlayButtonHoveringClickless = false;
 
+document.getElementById('turnToolbar').style.display = 'none'; // disable initially
+
 function renderOverlayToggleButton() {
   // Box geometry (next to Help/Undo/Redo row)
   const x = 310, y = 30, w = 50, h = 50;
