@@ -13,9 +13,9 @@
         overflow: hidden;
         height: 100%;
         display: flex;
-        background: #000;
+        /* background: #000; */
         /* Reserve space so the fixed toolbar doesn't cover the canvas */
-        padding-right: 300px; /* must match #turnToolbar width */
+        /* padding-right: 300px; must match #turnToolbar width */
       }
 
       /* Canvas fills remaining space */
@@ -23,7 +23,7 @@
         flex: 1 1 auto;
         height: 100%;
         display: block;
-        background: #000;
+        /* background: #000; */
       }
 
       /* Compact toolbar, fixed to the top-right, scrollable */
@@ -35,10 +35,10 @@
         height: 100vh;            /* fill viewport height */
         overflow-y: auto;         /* scroll when long */
         padding: 8px;             /* tight padding */
-        border-left: 1px solid #2a2f35;
-        background: rgba(20, 23, 28, 0.86);
-        backdrop-filter: blur(6px);
-        box-shadow: -2px 0 20px rgba(0, 0, 0, 0.5);
+        /* border-left: 1px solid #2a2f35; */
+        /* background: rgba(20, 23, 28, 0.86); */
+        /* backdrop-filter: blur(6px); */
+        /* box-shadow: -2px 0 20px rgba(0, 0, 0, 0.5); */
         z-index: 1000;            /* sit above canvas/UI */
 
         display: grid;
@@ -71,14 +71,14 @@
               Roboto, "Helvetica Neue", Arial;
         border: 2px solid #2a2f35;
         border-radius: 10px;
-        background: #1f2329;
+        /* background: #1f2329; */
         color: #e6ebf2;
         cursor: pointer;
         transition: background .15s ease, transform .05s ease, border-color .15s ease;
         min-width: 0;              /* allow narrow buttons in 4-col rows */
       }
 
-      #turnToolbar button:hover { background:#2a2f35; }
+      /* #turnToolbar button:hover { background:#2a2f35; } */
       #turnToolbar button:active { transform: translateY(1px); }
     </style>
   </head>

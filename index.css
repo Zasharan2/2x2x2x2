@@ -3,7 +3,7 @@ html, body {
     margin: 0;
     padding: 0;
     height: 100%;
-    background: #000;              /* Keeps background clean */
+   /* background: #00000000;              /* Keeps background clean */
     overflow: hidden;              /* Prevents page scroll */
 }
 
@@ -24,11 +24,11 @@ canvas#mainCanvas {
     max-height: calc(100vh - 140px); /* Leaves space at bottom */
     overflow-y: auto;             /* Scrollable if content is long */
     padding: 10px;
-    border: 1px solid #2a2f35;
-    border-radius: 12px;
-    background: rgba(20, 23, 28, 0.75);
-    backdrop-filter: blur(6px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    /* border: 1px solid #2a2f35; */
+    /* border-radius: 12px; */
+    /* background: rgba(20, 23, 28, 00); */
+    /* backdrop-filter: blur(6px); */
+    /* box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); */
 
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
