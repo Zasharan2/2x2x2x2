@@ -1991,6 +1991,8 @@ function handleTurning() {
                 backgroundColor = [0, 255, 0];
                 playAudio(solveSound, false);
                 hasBeenScrambled = false;
+                pauseSolveTimer = true;
+                solveTime = Date.now() - solveTimerStart;
             }
         }
         if (!scrambling && !undoMove && !redoMove && (turnType != "gyroB" && turnType != "gyroC" && turnType != "gyropB" && turnType != "gyropC")) {
@@ -2096,6 +2098,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "lx";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // ly
@@ -2103,6 +2109,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "ly";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // lz
@@ -2110,6 +2120,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "lz";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // rx
@@ -2117,6 +2131,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "rx";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // ry
@@ -2124,6 +2142,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "ry";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // rz
@@ -2131,6 +2153,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "rz";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // ix
@@ -2138,6 +2164,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "ix";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // ox
@@ -2145,6 +2175,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "ox";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // lx'
@@ -2152,6 +2186,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "lxp";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // ly'
@@ -2159,6 +2197,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "lyp";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // lz'
@@ -2166,6 +2208,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "lzp";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // rx'
@@ -2173,6 +2219,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "rxp";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // ry'
@@ -2180,6 +2230,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "ryp";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // rz'
@@ -2187,6 +2241,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "rzp";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // ix'
@@ -2194,6 +2252,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "ixp";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // ox'
@@ -2201,6 +2263,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "oxp";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // u2
@@ -2208,6 +2274,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "u2";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // f2
@@ -2215,6 +2285,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "f2";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // b2
@@ -2222,6 +2296,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "b2";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // d2
@@ -2229,6 +2307,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "d2";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // x
@@ -2236,6 +2318,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "x";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // x'
@@ -2243,6 +2329,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "xp";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // y2
@@ -2250,6 +2340,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "y2";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // z2
@@ -2257,6 +2351,10 @@ function handleTurning() {
         animationProgress = 0;
         animationIncrement = 0;
         turnType = "z2";
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
         animating = ANIMATION.TURN;
     }
     // gyro
@@ -2269,6 +2367,10 @@ function handleTurning() {
             animating = ANIMATION.TURN;
             instantGyroTimer = 0;
         }
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
     }
     // gyro'
     if (checkKeyBind(keyBinds.gyroPrime) && animating == ANIMATION.NONE) {
@@ -2280,9 +2382,14 @@ function handleTurning() {
             animating = ANIMATION.TURN;
             instantGyroTimer = 0;
         }
+        if (!scrambling && hasBeenScrambled && !showSolveTimer) {
+            showSolveTimer = true;
+            solveTimerStart = Date.now();
+        }
     }
 
     if (animating == ANIMATION.TURN && animationProgress == 0) {
+        // sfx
         if (soundEffectsOn == 1) {
             if (!scrambling) {
                 if (turnType == "gyroA" || turnType == "gyropA") {
@@ -2570,6 +2677,10 @@ function toggleScramblePuzzle() {
     scrambleTurn = "";
     scrambleTurnCount = 0;
     turnSpeed = 1;
+    showSolveTimer = false;
+    pauseSolveTimer = false;
+    solveTime = 0;
+    solveTimerStart = -1;
     if (soundEffectsOn == 1) {
         var temp = scrambleSound.cloneNode(true);
         temp.playbackRate = Math.min(16, 50 / targetScrambleTurnCount);
@@ -2633,6 +2744,10 @@ function toggleResetPuzzle() {
     // separated = false;
     // scaleDistance = 0;
     hasBeenScrambled = false;
+    showSolveTimer = false;
+    pauseSolveTimer = false;
+    solveTime = 0;
+    solveTimerStart = -1;
     hasBeenSolved = false;
     turnSpeed = speedList[turnSpeedIndex] / 15;
     animationProgress = 0;
@@ -3167,6 +3282,21 @@ const SCREENTYPE = {
     HELPINFO_TO_PUZZLE: 3.1
 };
 
+var showSolveTimer = false;
+var solveTimerStart = -1;
+var pauseSolveTimer = false;
+var solveTime = 0;
+
+function renderSolveTimer() {
+    ctx.beginPath();
+    ctx.fillStyle = "#ffffffff";
+    if (pauseSolveTimer) {
+        ctx.fillText(`Time: ${(solveTime) / 1000}s`, 20, 240);
+    } else {
+        ctx.fillText(`Time: ${(Date.now() - solveTimerStart) / 1000}s`, 20, 240);
+    }
+}
+
 var screen = SCREENTYPE.NULL_TO_PUZZLE;
 var message = "";
 
@@ -3225,6 +3355,7 @@ function main() {
                     turnListIndex = -1;
                     hasBeenSolved = false;
                     hasBeenScrambled = true;
+                    showSolveTimer = false;
                     turnSpeed = speedList[turnSpeedIndex] / 15;
                 } else {
                     scrambleTurn = ['lx','ly','lz','rx','ry','rz','ix','ox','lxp','lyp','lzp','rxp','ryp','rzp','ixp','oxp','u2','f2','d2','b2','gyroA','gyropA'][Math.floor(Math.random() * 22)];
@@ -3280,6 +3411,10 @@ function main() {
                 }
             }
 
+            if (showSolveTimer) {
+                renderSolveTimer();
+            }
+
             // settings button
             renderSettingsButton();
 
@@ -3296,7 +3431,7 @@ function main() {
             // // reset button
             // renderResetButton();
 
-renderOverlayToggleButton();
+            renderOverlayToggleButton();
 
             // render solved
             if (hasBeenSolved) {
